@@ -5,12 +5,15 @@ const db = require('../db/db.js');
 
 const createPage = (page) => {
     return new Promise((resolve,reject) => {
-        const sql = "INSERT INTO Pages(title,creatorId,creatorName,creationDate,publicationDate) VALUES (?,?,?,?,?)";
-        db.run(sql,[page.title,page.creatorId,page.creatorName,page.creationDate.format('YYYY-MM-DD'),page.publicationDate? page.publicationDate.format('YYYY-MM-DD'):null],(err) => {
-            if(err)
+        const sql = "INSERT INTO Pages(title,creatorId,creatorUsername,creationDate,publicationDate) VALUES (?,?,?,?,?)";
+        db.run(sql,[page.title,page.creatorId,page.creatorName,page.creationDate.format('YYYY-MM-DD'),page.publicationDate? page.publicationDate.format('YYYY-MM-DD'):null],function(err){
+            if(err){
+                console.log(err);
                 reject(err);
-            else
-                resolve(true);
+            }
+            else{
+                resolve(this.lastID);
+            }
         })
     })
 }
@@ -71,7 +74,20 @@ const getPublicPages = () => {
 const getAllPages = () => {
     return new Promise((resolve,reject) => {
         const sql = "SELECT * FROM Pages";
-        db.all(sql,[dayjs().format('YYYY-MM-DD')],(err, rows) => {
+        db.all(sql,(err, rows) => {
+            if(err)
+                reject(err);
+            else{
+                resolve(rows);
+            }
+        })
+    })
+}
+
+const getPage = (id) => {
+    return new Promise((resolve,reject) => {
+        const sql = "SELECT * FROM Pages WHERE id=?";
+        db.all(sql,[id],(err, rows) => {
             if(err)
                 reject(err);
             else{
@@ -87,3 +103,4 @@ exports.deletePage = deletePage;
 exports.updateAuthor = updateAuthor;
 exports.getPublicPages = getPublicPages;
 exports.getAllPages = getAllPages;
+exports.getPage = getPage;

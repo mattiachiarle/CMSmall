@@ -35,4 +35,19 @@ const getUser = (email, password) => {
     })
 }
 
+const getUserId = (username) => {
+    return new Promise((resolve,reject) => {
+        const sql = "SELECT id FROM Users WHERE username=?";
+        db.get(sql,[username],function(err, row){
+            if(err){
+                reject(err);
+            }
+            else{
+                resolve(row);
+            }               
+        })
+    })
+}
+
 exports.getUser = getUser;
+exports.getUserId = getUserId;

@@ -40,6 +40,18 @@ const deleteBlock = id => {
     })
 }
 
+const deletePageBlocks = id => {
+    return new Promise((resolve,reject) => {
+        const sql = "DELETE FROM Blocks WHERE pageId=?";
+        db.run(sql,[id],(err) => {
+            if(err)
+                reject(err);
+            else
+                resolve(true);
+        })
+    })
+}
+
 const getPageBlocks = id => {
     return new Promise((resolve,reject) => {
         const sql = "SELECT * FROM Blocks WHERE pageId=?";
@@ -56,4 +68,5 @@ const getPageBlocks = id => {
 exports.createBlock = createBlock;
 exports.updateBlock = updateBlock;
 exports.deleteBlock = deleteBlock;
+exports.deletePageBlocks = deletePageBlocks;
 exports.getPageBlocks = getPageBlocks;

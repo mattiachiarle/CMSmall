@@ -122,8 +122,6 @@
   {
     title: "page1",
     authorId:1,
-    author: "user1",
-    creationDate: "2023-06-05",
     publicationDate: "2023-06-20",
     blocks: [
       {
@@ -133,7 +131,7 @@
       },
       {
         type: "image",
-        content: "img/image1.png"
+        content: "img/image1.png",
         position:2
       }
     ]
@@ -152,7 +150,7 @@
   {
     title: "Page1",
     publicationDate: "2023-06-18",
-    blocks: [
+    updatedBlocks: [
       {
         id:3,
         type: "header",
@@ -171,6 +169,9 @@
         content: "new header",
         position:3
       },
+    ]
+    deletedBlocks: [
+      ...
     ]
   }
   ```
