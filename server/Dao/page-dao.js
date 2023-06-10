@@ -87,7 +87,7 @@ const getAllPages = () => {
 const getPage = (id) => {
     return new Promise((resolve,reject) => {
         const sql = "SELECT * FROM Pages WHERE id=?";
-        db.all(sql,[id],(err, rows) => {
+        db.get(sql,[id],(err, rows) => {
             if(err)
                 reject(err);
             else{

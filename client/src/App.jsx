@@ -1,33 +1,31 @@
 import { useState } from 'react';
-import { Button, Col, Container, Row } from 'react-bootstrap';
-import { getGuess } from './API';
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { Layout } from './Layout';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 
 function App() {
 
-  const [guess, setGuess] = useState(100);
+  const [logged, setLogged] = useState(false);
+  const [user, setUser] = useState({});
+  const [viewMode, setViewMode] = useState('');
 
-  const newGuess = async () => {
-    try {
-      const n = await getGuess();
-      setGuess(n);
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
-  return (
-    <Container>
-      <Row>
-        <h1>App</h1>
-      </Row>
-      <Row>
-        <Col><Button onClick={newGuess}>Guess a number</Button></Col>
-        <Col>{guess}</Col>
-      </Row>
-    </Container>
+  return (<>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Layout logged={logged} setLogged={setLogged} user={user} setUser={setUser} viewMode={viewMode} setViewMode={setViewMode}/>}>
+            {/* <Route path="frontoffice" element={<ShowPublicPages />} />
+            <Route path="backoffice" element={<ShowAllPages />} />
+            <Route path="view/:pageid" element={<ViewPage/>} />
+            <Route path="add" element={<AddPage/>} />
+            <Route path="editPage/:pageid" element={<EditPage/>} />
+            <Route path="editWebsite" element={<EditWebsite/>} /> */}
+          </Route>
+          {/* <Route path="/login" element={<Login/>} /> */}
+        </Routes>
+      </BrowserRouter>
+    </>
   )
 }
 

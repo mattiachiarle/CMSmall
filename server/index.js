@@ -14,7 +14,7 @@ const dayjs = require('dayjs');
 const {createBlock, updateBlock, deleteBlock, deletePageBlocks, getPageBlocks} = require('./Dao/block-dao.js');
 const {createPage, updatePage, deletePage, updateAuthor, getPublicPages, getAllPages, getPage} = require('./Dao/page-dao.js');
 const {getUser, getUserId} = require('./Dao/user-dao.js');
-const {updateWebsiteName} = require('./Dao/website-dao.js');
+const {getWebsiteName,updateWebsiteName} = require('./Dao/website-dao.js');
 const {Page} = require('./Models/pageModel.js');
 const {Block} = require('./Models/blockModel.js');
 
@@ -71,22 +71,32 @@ app.post('/api/logout',(req,res) => {
     req.logout(() => res.end());
 })
 
-const getCompletePage = (page) => {
+app.get('/api/website', async (req,res) => {
     try{
-        let blocks = getPageBlocks(page.id);
+        const result = await getWebsiteName();
+        return res.json(result);
+    }
+    catch(error){
+        return res.status(500).send(error.message);
+    }
+});
+
+const getCompletePage =  (page, blocks) => {
+    try{
         blocks = blocks.map((b) => ({
             id:b.id,
             type:b.type,
             content:b.content,
             position:b.position
         }));
-        return {
+        return ({
             id:page.id,
             title: page.title,
             author:page.creatorUsername,
             creationDate:page.creationDate,
+            publicationDate:page.publicationDate,
             blocks:blocks
-        }
+        })
     }
     catch(error){
         throw error;
@@ -101,9 +111,11 @@ app.get('/api/pages/:mode', async (req,res) => {
         else{
             try{
                 const pages = await getAllPages();
-                const result = pages.map((p) => {
-                    return getCompletePage(p);
-                })
+                const result = [];
+                for(const page of pages){
+                    const blocks = await getPageBlocks(page.id);
+                    result.push(getCompletePage(page,blocks));
+                }
                 return res.json(result);
             }
             catch(error){
@@ -114,9 +126,11 @@ app.get('/api/pages/:mode', async (req,res) => {
     else if(req.params.mode == 'frontoffice'){
         try{
             const pages = await getPublicPages();
-            const result = pages.map((p) => {
-                return getCompletePage(p);
-            })
+            const result = [];
+            for(const page of pages){
+                const blocks = await getPageBlocks(page.id);
+                result.push(getCompletePage(page,blocks));
+            }
             return res.json(result);
         }
         catch(error){
@@ -144,16 +158,17 @@ const checkPageView = (date, author, req) => {
     return true;
 }
 
-app.get('/api/pages/:pageid', async (req,res) => {
+app.get('/api/pages/:pageid/view', async (req,res) => {
     try{
-        const page = await getPage(req.params.pageid).catch((error) => res.status(500).send(error));
+        const page = await getPage(req.params.pageid);
         if(!page){
             return res.status(404).send("Page not found");
         }
-        if(!checkPageView(page.date,page.creatorUsername,req)){
+        if(!checkPageView(page.publicationDate,page.creatorUsername,req)){
             return res.status(401).send("You are not authorized to see this page");
         }
-        const result = getCompletePage(page);
+        const blocks = await getPageBlocks(page.id);
+        const result = getCompletePage(page,blocks);
         return res.json(result);
     }
     catch(error){
@@ -226,7 +241,7 @@ const checkPage = (blocks) => {
 
 app.post('/api/pages', async (req,res) => {
     try{
-        const page = new Page(null,req.body.title,req.user.id,req.user.username,dayjs(),req.body.publicationDate?dayjs(req.body.publicationDate):null);
+        const page = new Page(null,req.body.title,1,"user1",dayjs(),req.body.publicationDate?dayjs(req.body.publicationDate):null);
         console.log(page);
         const check = checkPage(req.body.blocks);
         if(!check.correct){
@@ -246,6 +261,18 @@ app.post('/api/pages', async (req,res) => {
 
 app.put('/api/pages/:pageid', async (req,res) => {
     try{
+        let userId;
+        if(req.body.author){
+            if(req.user.role!='admin'){
+                return res.status(401).send("Not an admin");
+            }
+            else{
+                userId = await getUserId(req.body.author);
+                if(!userId){
+                    return res.status(400).send("User not found");
+                }
+            }
+        }
         const existingPage = await getPage(req.params.pageid);
         if(!existingPage){
             return res.status(400).send("Page not found");
@@ -258,12 +285,19 @@ app.put('/api/pages/:pageid', async (req,res) => {
             return res.status(400).send(check.cause);
         }
         await updatePage(req.params.pageid,req.body.title,req.body.publicationDate);
-        req.body.updatedBlocks.forEach(async (b) => {
+        for(const b of req.body.addedBlocks){
+            const block = new Block(null,b.type,b.content,req.params.pageid,b.position);
+            await createBlock(block);
+        }
+        for(const b of req.body.updatedBlocks){
             await updateBlock(b.id,b.content,b.position);
-        })
-        req.body.deletedBlocks.forEach(async (b) => {
-            await deleteBlock(b.id);
-        })
+        }
+        for(const id of req.body.deletedBlocks){
+            await deleteBlock(id);
+        }
+        if(req.body.author){
+            await updateAuthor(req.params.pageid,userId,req.body.author);
+        }
 
         return res.end();
     }
@@ -304,22 +338,13 @@ const isAdmin = (req,res,next) => {
 
 app.use(isAdmin);
 
-app.put('/api/pages/:pageid/author', async (req,res) => {
-    try{
-        const userId = await getUserId(req.body.author);
-        if(!userId){
-            return res.status(400).send("User not found");
-        }
-        await updateAuthor(req.params.pageid,userId,req.body.author);
-    }
-    catch(error){
-        return res.status(500).send(error.message);
-    }
-})
-
 app.put('/api/website', async (req,res) => {
     try{
+        if(req.body.name == ''){
+            res.status(400).send("The website name can't be empty");
+        }
         await updateWebsiteName(req.body.name);
+        res.end();
     }
     catch(error){
         return res.status(500).send(error.message);

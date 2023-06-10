@@ -35,6 +35,17 @@
   ```
   none
   ```
+- GET `/api/website`
+  - request parameters and request body content
+  ```
+  none
+  ```
+  - response body content
+  ```
+  {
+    name: "Website name"
+  }
+  ```
 - GET `/api/pages/:mode`
   - request parameters
   ```
@@ -43,12 +54,15 @@
   ```
   - response body content
   ```
+  Frontoffice
+
   [
     {
       id:1,
       title: "page1",
       author: "user1",
       creationDate: "2023-06-05",
+      publicationDate: "2023-04-12",
       blocks: [
         {
           id:3,
@@ -69,6 +83,7 @@
       title: "page3",
       author: "user2",
       creationDate: "2023-06-09",
+      publicationDate:null,
       blocks: [
         {
           id:6,
@@ -86,7 +101,7 @@
     }
   ]
   ```
-- GET `api/pages/:pageid`
+- GET `api/pages/:pageid/view`
   - request parameters
   ```
   pageid: the id of the displayed page.
@@ -121,7 +136,6 @@
   request body:
   {
     title: "page1",
-    authorId:1,
     publicationDate: "2023-06-20",
     blocks: [
       {
@@ -149,29 +163,42 @@
   request body:
   {
     title: "Page1",
+    author: "user1" (it can be not null only if the user that's performing the action is an admin),
     publicationDate: "2023-06-18",
+    blocks: [
+      {
+        type: "header",
+        content: "header1",
+        position:2
+      },
+      {
+        type: "image",
+        content: "img/image2.png"
+        position:1
+      },
+      {
+        type: "header",
+        content: "new header",
+        position:3
+      }
+    ],
+    addedBlocks: [
+      {
+        type: "header",
+        content: "new header",
+        position:3
+      }
+    ]
     updatedBlocks: [
       {
         id:3,
         type: "header",
         content: "header1",
         position:2
-      },
-      {
-        id:6,
-        type: "image",
-        content: "img/image2.png"
-        position:1
-      },
-      {
-        id:12,
-        type: "header",
-        content: "new header",
-        position:3
-      },
-    ]
+      }
+    ],
     deletedBlocks: [
-      ...
+      2,7
     ]
   }
   ```
@@ -180,25 +207,11 @@
   none
   ``` 
 
-  - DELETE `/api/pages/:pageid`
+- DELETE `/api/pages/:pageid`
   - request parameters and request body content
   ```
   request parameters: pageid, i.e. the id of the page that we want to delete
   request body: none
-  ```
-  - response body content
-  ```
-  none
-  ``` 
-
-- PUT `/api/pages/:pageid/author`
-  - request parameters and request body content
-  ```
-  request parameters: pageid, i.e. the id of the page that we want to update
-  request body:
-  {
-    author: "newAuthor"
-  }
   ```
   - response body content
   ```

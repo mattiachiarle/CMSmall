@@ -2,23 +2,86 @@ POST  http://localhost:3000/api/pages
 Content-Type: application/json
 
 {
-    "title": "page1",
+    "title": "page3",
     "authorId":1,
-    "publicationDate": "2023-06-20",
+    "publicationDate": null,
     "blocks": [
       {
         "type": "header",
-        "content": "header1",
-        "position":1
+        "content": "header3",
+        "position":2
       },
       {
-        "type": "image",
-        "content": "img/image1.png",
-        "position":2
+        "type": "paragraph",
+        "content": "third page",
+        "position":1
       }
     ]
   }
 
 ###
 
+GET  http://localhost:3000/api/website
+
+###
+
 GET  http://localhost:3000/api/pages/frontoffice
+
+###
+
+GET  http://localhost:3000/api/pages/backoffice
+
+###
+
+GET  http://localhost:3000/api/pages/2/view
+
+###
+
+PUT http://localhost:3000/api/pages/3
+Content-Type: application/json
+
+{
+    "title": "page4",
+    "publicationDate": null,
+    "blocks": [
+      {
+        "type": "header",
+        "content": "header3 replaced",
+        "position":2
+      },
+      {
+        "type": "paragraph modified",
+        "content": "third page",
+        "position":1
+      },
+      {
+        "type": "image",
+        "content": "img/image2.png",
+        "position":3
+      }
+    ],
+    "addedBlocks":[
+    ],
+    "updatedBlocks":[
+        {
+        "id":5,
+        "type": "paragraph",
+        "content": "third page modified",
+        "position":1
+      }
+    ],
+    "deletedBlocks":[6]
+}
+
+###
+
+DELETE http://localhost:3000/api/pages/3
+
+###
+
+PUT http://localhost:3000/api/website
+Content-Type: application/json
+
+{
+    "name": "CMSmall"
+}
