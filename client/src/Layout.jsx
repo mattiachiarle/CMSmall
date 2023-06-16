@@ -27,6 +27,10 @@ function Layout(props){
         navigate('/frontoffice');
     }
 
+    const handleWebsiteEdit = () => {
+        //TBD
+    }
+
     useEffect(() => {
         async function getName(){
             const name = await getWebsiteName();
@@ -44,12 +48,16 @@ function Layout(props){
                     <Container fluid>
                         <Col xs={2}>
                         <Navbar.Brand>
-                            {websiteName? websiteName:"Loading..."}
+                            {websiteName? <Button onClick={handleFrontoffice}>{websiteName}</Button>:"Loading..."}
+                            {props.user && props.user.role == 'admin'?
+                            <> <Button onClick={handleWebsiteEdit}>EDIT NAME</Button></>:
+                            ''
+                            }
                         </Navbar.Brand>
                         </Col>
                         <Col xs={8} className="d-flex justify-content-center">{
                             props.logged?
-                            <Navbar.Text>Signed in as: {props.user.name}</Navbar.Text>:''
+                            <Navbar.Text>Signed in as: {props.user.username}</Navbar.Text>:''
                         }
                         </Col>
                         <Col xs={2} className="d-flex justify-content-end">

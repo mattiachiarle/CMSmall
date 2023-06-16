@@ -73,7 +73,7 @@
         {
           id:6,
           type: "image",
-          content: "img/image1.png"
+          content:1
           position:2
         }
       ]
@@ -123,7 +123,7 @@
       {
         id:6,
         type: "image",
-        content: "img/image1.png"
+        content:1
         position:2
       }
     ]
@@ -133,19 +133,24 @@
   - request parameters and request body content
   ```
   request parameters: none
+
+  In the request body, the id will be ignored. It's used in the client to identify the different blocks, but it's useless on client side since it'll be automatically assigned by the db.
+
   request body:
   {
     title: "page1",
     publicationDate: "2023-06-20",
     blocks: [
       {
+        id:1,
         type: "header",
         content: "header1",
         position:1
       },
       {
+        id:2,
         type: "image",
-        content: "img/image1.png",
+        content:1
         position:2
       }
     ]
@@ -160,6 +165,13 @@
   - request parameters and request body content
   ```
   request parameters: pageid, i.e. the id of the page that we want to modify
+
+  In request body we've 4 arrays of blocks:
+    - blocks: it contains the blocks that were in the page before the edit. It is used to access the original blocks and to display all the blocks during editing.
+    - addedBlocks: ids of all the blocks that are added.
+    - updatedBlocks: ids of all the blocks that were already present but that were modified.
+    - deletedBlocks: ids of all the blocks that have been deleted.
+
   request body:
   {
     title: "Page1",
@@ -173,7 +185,7 @@
       },
       {
         type: "image",
-        content: "img/image2.png"
+        content:2
         position:1
       },
       {
@@ -183,19 +195,10 @@
       }
     ],
     addedBlocks: [
-      {
-        type: "header",
-        content: "new header",
-        position:3
-      }
+      10
     ]
     updatedBlocks: [
-      {
-        id:3,
-        type: "header",
-        content: "header1",
-        position:2
-      }
+      3,4
     ],
     deletedBlocks: [
       2,7
@@ -236,7 +239,7 @@
 
 - Table `Users` - contains id, email, username, hashedPassword, salt, role (available roles: user, admin)
 - Table `Pages` - contains id, title, creatorId, creatorUsername, creationDate, publicationDate (the status of the page will be retrieved by comparing publicationDate and the current date. I decided to store creatorName too to avoid the need of doing joins when we want to display a page)
-- Table `Blocks` - contains id, type, content, pageId, position (for headers and paragraphs content=text of the block, for images content=path of the image)
+- Table `Blocks` - contains id, type, content, pageId, position (for headers and paragraphs content=text of the block, for images content=number of the image)
 - Table `Website` - contains id, name (actually the id and, more in general, the table would be useless since it'll contain only one record. However, the only way to save in a persistent way the name of the website is to store it into the DB, and thus it's necessary to create this table too)
 
 # Client side

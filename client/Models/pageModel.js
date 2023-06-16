@@ -1,6 +1,6 @@
 'use strict';
 
-import {dayjs} from 'dayjs';
+import dayjs from 'dayjs';
 
 function Page(id, title, author, creationDate, publicationDate, blocks, status){
     this.id=id;

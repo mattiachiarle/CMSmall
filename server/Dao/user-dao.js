@@ -15,12 +15,13 @@ const getUser = (email, password) => {
                     reject("Invalid email or password");
                 }
                 else{
+                    console.log(row);
                     crypto.scrypt(password,row.salt,32,(err,computed_hash) => {
                         if(err){
                             reject(err);
                         }
                         else{
-                            const equal = crypto.timingSafeEqual(computed_hash, Buffer.from(row.hash,'hex'));
+                            const equal = crypto.timingSafeEqual(computed_hash, Buffer.from(row.hashedPassword,'hex'));
                             if(equal){
                                 resolve(row);
                             }

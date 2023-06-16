@@ -143,7 +143,7 @@ app.get('/api/pages/:mode', async (req,res) => {
 })
 
 const checkAuth = (req,author) => {
-    if(req.isAuthenticated() && (req.user.userRole == 'Admin' || author == req.user.username)){
+    if(req.isAuthenticated() && (req.user.userRole == 'admin' || author == req.user.name)){
         return true;
     }
     else{
@@ -241,8 +241,7 @@ const checkPage = (blocks) => {
 
 app.post('/api/pages', async (req,res) => {
     try{
-        const page = new Page(null,req.body.title,1,"user1",dayjs(),req.body.publicationDate?dayjs(req.body.publicationDate):null);
-        console.log(page);
+        const page = new Page(null,req.body.title,req.user.id,req.user.name,dayjs(),req.body.publicationDate?dayjs(req.body.publicationDate):null);
         const check = checkPage(req.body.blocks);
         if(!check.correct){
             return res.status(400).send(check.cause);
@@ -262,7 +261,8 @@ app.post('/api/pages', async (req,res) => {
 app.put('/api/pages/:pageid', async (req,res) => {
     try{
         let userId;
-        if(req.body.author){
+        const existingPage = await getPage(req.params.pageid);
+        if(req.body.author!=existingPage.creatorUsername){
             if(req.user.role!='admin'){
                 return res.status(401).send("Not an admin");
             }
@@ -273,11 +273,12 @@ app.put('/api/pages/:pageid', async (req,res) => {
                 }
             }
         }
-        const existingPage = await getPage(req.params.pageid);
         if(!existingPage){
             return res.status(400).send("Page not found");
         }
         if(!checkAuth(req,existingPage.creatorUsername)){
+            console.log(req);
+            console.log(existingPage.creatorUsername)
             return res.status(401).send("You are not authorized to update this page");
         }
         const check = checkPage(req.body.blocks);
@@ -285,17 +286,22 @@ app.put('/api/pages/:pageid', async (req,res) => {
             return res.status(400).send(check.cause);
         }
         await updatePage(req.params.pageid,req.body.title,req.body.publicationDate);
-        for(const b of req.body.addedBlocks){
-            const block = new Block(null,b.type,b.content,req.params.pageid,b.position);
+        for(const id of req.body.addedBlocks){
+            const referenceBlock = (req.body.blocks.filter((b)=>b.id==id))[0];
+            console.log(referenceBlock)
+            const block = new Block(null,referenceBlock.type,referenceBlock.content,req.params.pageid,referenceBlock.position);
+            console.log(block);
             await createBlock(block);
         }
-        for(const b of req.body.updatedBlocks){
-            await updateBlock(b.id,b.content,b.position);
+        console.log('ok add')
+        for(const id of req.body.updatedBlocks){
+            const referenceBlock = (req.body.blocks.filter((b)=>b.id==id))[0];
+            await updateBlock(referenceBlock.id,referenceBlock.content,referenceBlock.position);
         }
         for(const id of req.body.deletedBlocks){
             await deleteBlock(id);
         }
-        if(req.body.author){
+        if(req.body.author!=existingPage.creatorUsername){
             await updateAuthor(req.params.pageid,userId,req.body.author);
         }
 
@@ -337,6 +343,21 @@ const isAdmin = (req,res,next) => {
 }
 
 app.use(isAdmin);
+
+app.get('/api/users/:username', async (req,res) => {
+    try{
+        const id = await getUserId(req.params.username);
+        if(id){
+            res.json(true);
+        }
+        else{
+            res.json(false);
+        }
+    }
+    catch(error){
+        return res.status(500).send(error.message);
+    }
+});
 
 app.put('/api/website', async (req,res) => {
     try{

@@ -1,9 +1,9 @@
+import dayjs from 'dayjs';
+
 const url = 'http://localhost:3000';
 
 import { Page } from "../Models/pageModel";
 import { Block } from "../Models/blockModel";
-
-import {dayjs} from 'dayjs';
 
 async function login(username, password){
     try{
@@ -55,7 +55,10 @@ async function getPublicPages(){
         })
         if(response.ok){
             const pages = await response.json();
-            pages.forEach((p) => p.blocks = p.blocks.map((b) => new Block(b.id,b.type,b.content,b.position)));
+            pages.forEach((p) => {
+                p.blocks = p.blocks.map((b) => new Block(b.id,b.type,b.content,b.position));
+                p.blocks.sort((a,b) => a.position - b.position);
+            });
             return pages.map((p) => new Page(p.id,p.title,p.author,p.creationDate,p.publicationDate,p.blocks,"published"));
         }
         else{
@@ -75,7 +78,10 @@ async function getAllPages(){
         })
         if(response.ok){
             const pages = await response.json();
-            pages.forEach((p) => p.blocks = p.blocks.map((b) => new Block(b.id,b.type,b.content,b.position)));
+            pages.forEach((p) => {
+                p.blocks = p.blocks.map((b) => new Block(b.id,b.type,b.content,b.position))
+                p.blocks.sort((a,b) => a.position - b.position);
+            });
             return pages.map((p) => {
                 let status;
                 if(!p.publicationDate){
@@ -108,11 +114,12 @@ async function getPage(pageid){
         if(response.ok){
             const page = await response.json();
             page.blocks = page.blocks.map((b) => new Block(b.id,b.type,b.content,b.position));
+            page.blocks.sort((a,b) => a.position - b.position);
             let status;
-            if(!p.publicationDate){
+            if(!page.publicationDate){
                 status="draft";
             }
-            else if(p.publicationDate > dayjs().format('YYYY-MM-DD')){
+            else if(page.publicationDate > dayjs().format('YYYY-MM-DD')){
                 status='scheduled';
             }
             else{
@@ -155,9 +162,9 @@ async function addPage(title,publicationDate,blocks){
     }
 }
 
-async function editPage(pageid, title, author, publicationDate, updatedBlocks, deletedBlocks){
+async function editPage(pageid, title, author, publicationDate, blocks, addedBlocks, updatedBlocks, deletedBlocks){
     try{
-        const response = await fetch(url+`api/pages/${pageid}`,{
+        const response = await fetch(url+`/api/pages/${pageid}`,{
             credentials: 'include',
             method : 'PUT',
             headers : {
@@ -167,6 +174,8 @@ async function editPage(pageid, title, author, publicationDate, updatedBlocks, d
                 "title": title,
                 "author": author,
                 "publicationDate" : publicationDate,
+                "blocks" : blocks,
+                "addedBlocks" : addedBlocks,
                 "updatedBlocks": updatedBlocks,
                 "deletedBlocks": deletedBlocks
             })
@@ -185,7 +194,7 @@ async function editPage(pageid, title, author, publicationDate, updatedBlocks, d
 
 async function deletePage(pageid){
     try{
-        const response = await fetch(url+`api/pages/${pageid}`,{
+        const response = await fetch(url+`/api/pages/${pageid}`,{
             credentials: 'include',
             method : 'DELETE'
         })
@@ -221,7 +230,7 @@ async function getWebsiteName(){
 
 async function updateWebsiteName(name){
     try{
-        const response = await fetch(url+`api/website`,{
+        const response = await fetch(url+`/api/website`,{
             credentials: 'include',
             method : 'PUT',
             headers : {
@@ -243,4 +252,23 @@ async function updateWebsiteName(name){
     }
 }
 
-export {login, logout, getPublicPages, getAllPages, getPage, addPage, editPage, deletePage, getWebsiteName, updateWebsiteName};
+async function userExisting(username){
+    try{
+        const response = await fetch(url+`/api/users/${username}`,{
+            credentials: 'include',
+            method : 'GET'
+        })
+        if(response.ok){
+            const flag = await response.json();
+            return flag;
+        }
+        else{
+            const message = await response.text();
+            throw new Error(message);
+        }
+    } catch(error){
+        throw new Error(error.message);
+    }
+}
+
+export {login, logout, getPublicPages, getAllPages, getPage, addPage, editPage, deletePage, getWebsiteName, updateWebsiteName, userExisting};

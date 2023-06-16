@@ -46,7 +46,7 @@ const deletePage = id => {
 
 const updateAuthor = (pageId, creatorId, creatorName) => {
     return new Promise((resolve,reject) => {
-        const sql = "UPDATE Pages SET creatorId=?, creatorName=? WHERE id=?";
+        const sql = "UPDATE Pages SET creatorId=?, creatorUsername=? WHERE id=?";
         db.run(sql,[creatorId,creatorName,pageId],function(err){
             if(err){
                 reject(err);
@@ -87,11 +87,11 @@ const getAllPages = () => {
 const getPage = (id) => {
     return new Promise((resolve,reject) => {
         const sql = "SELECT * FROM Pages WHERE id=?";
-        db.get(sql,[id],(err, rows) => {
+        db.get(sql,[id],(err, row) => {
             if(err)
                 reject(err);
             else{
-                resolve(rows);
+                resolve(row);
             }
         })
     })
