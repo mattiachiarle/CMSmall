@@ -1,27 +1,29 @@
 import { useState,  } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { Layout } from './Layout';
+import { Layout, EditWebsite } from './Layout';
 import { ShowPublicPages, ShowAllPages, ViewPage, AddPage, EditPage } from './Pages';
 import { Login } from './Login';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './App.css'
 
 function App() {
 
   const [logged, setLogged] = useState(false);
   const [user, setUser] = useState({});
   const [viewMode, setViewMode] = useState('');
+  const [websiteName, setWebsiteName] = useState('');
 
   return (<>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Layout logged={logged} setLogged={setLogged} user={user} setUser={setUser} viewMode={viewMode} setViewMode={setViewMode}/>}>
-            <Route path="frontoffice" element={<ShowPublicPages />} />
+          <Route path="/" element={<Layout logged={logged} setLogged={setLogged} user={user} setUser={setUser} viewMode={viewMode} setViewMode={setViewMode} websiteName={websiteName} setWebsiteName={setWebsiteName}/>}>
+            <Route path="frontoffice" element={<ShowPublicPages/>} />
             <Route path="backoffice" element={<ShowAllPages user={user}/>} />
             <Route path="pages/:pageid" element={<ViewPage/>} />
             <Route path="add" element={<AddPage/>} />
             <Route path="editPage/:pageid" element={<EditPage user={user}/>} />
-            {/* <Route path="editWebsite" element={<EditWebsite/>} /> */}
+            <Route path="editWebsite" element={<EditWebsite setWebsiteName={setWebsiteName}/>} />
           </Route>
           <Route path="/login" element={<Login setLogged={setLogged} setUser={setUser}/>} />
         </Routes>

@@ -13,7 +13,7 @@ const dayjs = require('dayjs');
 
 const {createBlock, updateBlock, deleteBlock, deletePageBlocks, getPageBlocks} = require('./Dao/block-dao.js');
 const {createPage, updatePage, deletePage, updateAuthor, getPublicPages, getAllPages, getPage} = require('./Dao/page-dao.js');
-const {getUser, getUserId} = require('./Dao/user-dao.js');
+const {getUser, getUserId, getUsers} = require('./Dao/user-dao.js');
 const {getWebsiteName,updateWebsiteName} = require('./Dao/website-dao.js');
 const {Page} = require('./Models/pageModel.js');
 const {Block} = require('./Models/blockModel.js');
@@ -48,7 +48,7 @@ app.use(session({
 //AUTHENTICATION INITIALIZATION
 
 passport.use(new LocalStrategy(function verify(username, password, callback){
-    getUser(username,password).then((user) => callback(null,user)).catch(err => callback(null, false, err));
+    getUser(username,password).then((user) => callback(null,user)).catch(err => callback(null, false, {message: err}));
 }))
 
 passport.serializeUser((user, callback) => {
@@ -143,7 +143,7 @@ app.get('/api/pages/:mode', async (req,res) => {
 })
 
 const checkAuth = (req,author) => {
-    if(req.isAuthenticated() && (req.user.userRole == 'admin' || author == req.user.name)){
+    if(req.isAuthenticated() && (req.user.role == 'admin' || author == req.user.name)){
         return true;
     }
     else{
@@ -243,6 +243,9 @@ app.post('/api/pages', async (req,res) => {
     try{
         const page = new Page(null,req.body.title,req.user.id,req.user.name,dayjs(),req.body.publicationDate?dayjs(req.body.publicationDate):null);
         const check = checkPage(req.body.blocks);
+        if(req.body.publicationDate && req.body.publicationDate<page.creationDate.format('YYYY-MM-DD')){
+            return res.status(400).send("The publication date can't be before the creation date");
+        }
         if(!check.correct){
             return res.status(400).send(check.cause);
         }
@@ -281,6 +284,9 @@ app.put('/api/pages/:pageid', async (req,res) => {
             console.log(existingPage.creatorUsername)
             return res.status(401).send("You are not authorized to update this page");
         }
+        if(req.body.publicationDate && req.body.publicationDate!=existingPage.publicationDate && req.body.publicationDate<existingPage.creationDate){
+            return res.status(400).send("The publication date can't be updated with a value behind the creation date");
+        }
         const check = checkPage(req.body.blocks);
         if(!check.correct){
             return res.status(400).send(check.cause);
@@ -302,7 +308,7 @@ app.put('/api/pages/:pageid', async (req,res) => {
             await deleteBlock(id);
         }
         if(req.body.author!=existingPage.creatorUsername){
-            await updateAuthor(req.params.pageid,userId,req.body.author);
+            await updateAuthor(req.params.pageid,userId.id,req.body.author);
         }
 
         return res.end();
@@ -334,7 +340,7 @@ app.delete('/api/pages/:pageid', async (req,res) => {
 //AUTHENTICATED, ADMIN EXCLUSIVE
 
 const isAdmin = (req,res,next) => {
-    if(req.user.userRole == 'admin'){
+    if(req.user.role == 'admin'){
         next();
     }
     else{
@@ -344,15 +350,10 @@ const isAdmin = (req,res,next) => {
 
 app.use(isAdmin);
 
-app.get('/api/users/:username', async (req,res) => {
+app.get('/api/users', async (req,res) => {
     try{
-        const id = await getUserId(req.params.username);
-        if(id){
-            res.json(true);
-        }
-        else{
-            res.json(false);
-        }
+        const users = await getUsers();
+        res.json(users);
     }
     catch(error){
         return res.status(500).send(error.message);

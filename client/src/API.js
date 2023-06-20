@@ -22,8 +22,7 @@ async function login(username, password){
             return await response.json();
         }
         else{
-            const message = await response.text();
-            throw new Error(message);
+            throw new Error("Wrong username or password");
         }
     } catch(error){
         throw new Error(error.message);
@@ -252,15 +251,15 @@ async function updateWebsiteName(name){
     }
 }
 
-async function userExisting(username){
+async function getUsers(){
     try{
-        const response = await fetch(url+`/api/users/${username}`,{
+        const response = await fetch(url+`/api/users`,{
             credentials: 'include',
             method : 'GET'
         })
         if(response.ok){
-            const flag = await response.json();
-            return flag;
+            const users = await response.json();
+            return users;
         }
         else{
             const message = await response.text();
@@ -271,4 +270,4 @@ async function userExisting(username){
     }
 }
 
-export {login, logout, getPublicPages, getAllPages, getPage, addPage, editPage, deletePage, getWebsiteName, updateWebsiteName, userExisting};
+export {login, logout, getPublicPages, getAllPages, getPage, addPage, editPage, deletePage, getWebsiteName, updateWebsiteName, getUsers};

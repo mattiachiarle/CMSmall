@@ -4,7 +4,7 @@ Content-Type: application/json
 {
     "title": "page3",
     "authorId":1,
-    "publicationDate": null,
+    "publicationDate": "2023-03-01",
     "blocks": [
       {
         "type": "header",
@@ -37,12 +37,12 @@ GET  http://localhost:3000/api/pages/2/view
 
 ###
 
-PUT http://localhost:3000/api/pages/3
+PUT http://localhost:3000/api/pages/5
 Content-Type: application/json
 
 {
-    "title": "page4",
-    "publicationDate": null,
+    "title": "Test cookies error",
+    "publicationDate": "2023-06-13",
     "blocks": [
       {
         "type": "header",
@@ -63,14 +63,8 @@ Content-Type: application/json
     "addedBlocks":[
     ],
     "updatedBlocks":[
-        {
-        "id":5,
-        "type": "paragraph",
-        "content": "third page modified",
-        "position":1
-      }
     ],
-    "deletedBlocks":[6]
+    "deletedBlocks":[]
 }
 
 ###

@@ -50,5 +50,20 @@ const getUserId = (username) => {
     })
 }
 
+const getUsers = () => {
+    return new Promise((resolve,reject) => {
+        const sql = "SELECT username FROM Users";
+        db.all(sql,function(err, rows){
+            if(err){
+                reject(err);
+            }
+            else{
+                resolve(rows);
+            }               
+        })
+    })
+}
+
 exports.getUser = getUser;
 exports.getUserId = getUserId;
+exports.getUsers = getUsers;

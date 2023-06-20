@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Form, Button, Col } from "react-bootstrap";
+import { Form, Button, Col, Alert } from "react-bootstrap";
 import { login, getWebsiteName } from "./API";
 
 function Login(props){
@@ -16,7 +16,6 @@ function Login(props){
     const updateUsername = (ev) => {
         setUsername(ev.target.value);
     }
-
     const updatePassword = (ev) => {
         setPassword(ev.target.value);
     }
@@ -65,8 +64,8 @@ function Login(props){
 
     return (<>
         <h1 className="d-flex justify-content-center mt-3">{websiteName? websiteName+ ': Login':"Loading..."}</h1>
-        <Form className="block-example rounded mb-0 form-padding justify-content-center">
-        <Col xs={6}>
+        <div className="d-flex justify-content-center">
+        <Form className="rounded mt-3 w-50">
         <Form.Group className="ms-3">
           <Form.Label>Username</Form.Label>
           <Form.Control required={true} value={username} onChange={ev => updateUsername(ev)} placeholder={"Enter email"}/>
@@ -74,14 +73,22 @@ function Login(props){
   
         <Form.Group className="ms-3 mb-3">
           <Form.Label>Password</Form.Label>
-          <Form.Control type="password" value={password} required={true} onChange={ev => updatePassword(ev)} placeholder={"Enter passsord"}/>
+          <Form.Control type="password" value={password} required={true} onChange={ev => updatePassword(ev)} placeholder={"Enter password"}/>
         </Form.Group>
-        </Col>
   
         <Button className="mb-3 ms-3" variant="primary" onClick={handleSubmit}>Login</Button>
-        {(usernameError||passwordError)? <div className='ms-3'>ERROR</div>:''}
-        {wrong? <div className='ms-3'>{wrong}</div>:''}
-      </Form>
+        </Form>
+        </div>
+        <div className="d-flex justify-content-center">
+        {(usernameError || passwordError)?
+        <Alert variant='danger' className="ms-3 w-50">
+            <p>You must solve the following error(s):</p>
+            {usernameError? <p>The email doesn't respect the correct format</p>:''}
+            {passwordError? <p>The password field can't be empty</p>:''}
+        </Alert>:''
+        }
+        {wrong? <Alert variant='danger' className='ms-3  w-50'>{wrong}</Alert>:''}
+        </div>
       </>);
 }
 

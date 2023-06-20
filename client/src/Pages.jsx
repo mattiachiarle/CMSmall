@@ -1,12 +1,14 @@
-import { addPage, deletePage, editPage, getAllPages, getPage, getPublicPages, userExisting } from "./API";
+import { addPage, deletePage, editPage, getAllPages, getPage, getPublicPages, getUsers } from "./API";
 import { useNavigate, Link, useParams, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Table, Button, Form, Row, Col, Dropdown, Alert } from "react-bootstrap";
+import { Table, Button, Form, Row, Col, Dropdown, Alert, Image, Container } from "react-bootstrap";
 import { Block } from "../Models/blockModel";
 import image1 from './img/image1.png'
 import image2 from './img/image2.png'
 import image3 from './img/image3.png'
 import image4 from './img/image4.png'
+
+import dayjs from 'dayjs';
 
 function ShowPublicPages() {
 
@@ -16,6 +18,8 @@ function ShowPublicPages() {
     useEffect(() => {
         async function getPages(){
             const pages = await getPublicPages();
+            console.log(pages);
+            pages.sort((p1,p2) => p1.publicationDate.isAfter(p2.publicationDate));
             setPages(pages);
             setLoaded(true);
         }
@@ -34,7 +38,7 @@ function ShowPublicPages() {
                         Author
                     </th>
                     <th>
-                        Creation date
+                        Publication date
                     </th>
                 </tr>
                 {loaded? pages.map(p => <PageRow key={p.id} page={p}/>):<tr><td>Loading...</td></tr>}
@@ -49,7 +53,7 @@ function PageRow(props){
     return (<><tr>
         <td><Link to={`/pages/${props.page.id}`}>{props.page.title}</Link></td>
         <td>{props.page.author}</td>
-        <td>{props.page.creationDate.format('DD/MM/YYYY')}</td>
+        <td>{props.page.publicationDate.format('DD/MM/YYYY')}</td>
     </tr></>)
 }
 
@@ -101,6 +105,9 @@ function ShowAllPages(props) {
                     <th>
                         {" "}
                     </th>
+                    <th>
+                        {" "}
+                    </th>
                 </tr>
                 {loaded? pages.map(p => <LoggedPageRow key={p.id} page={p} user={props.user} handleDelete={handleDelete}/>):<tr><td>Loading...</td></tr>}
             </tbody>
@@ -145,7 +152,7 @@ function LoggedPageRow(props){
                     <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z" />
                 </svg>
             </Button></td>    
-        </>:''}
+        </>:<><td> </td><td> </td></>}
     </tr></>)
 }
 
@@ -164,9 +171,17 @@ function ViewPage(){
     },[])
 
     return (<>
-        <h1>{page? page.title:'Loading...'}</h1>
-        <h2>{page?"Author: " + page.author:''}</h2>
+        <Row>
+            <Col>
+        <h1 className="pageTitle">{page? page.title:'Loading...'}</h1>
+        </Col>
+        <Col className="d-flex justify-content-end mt-2">
+        <h2 className="pageAuthor">{page? "Author: " + page.author:''}</h2>
+        </Col>
+        </Row>
+        <Container fluid>
         {page? page.blocks.map((b) => <ShowBlock key={b.id} block={b}/>):''}
+        </Container>
     </>);
 }
 
@@ -191,11 +206,11 @@ function ShowBlock(props){
         }
     },[props.block.type,props.block.content])
 
-    return(<>
-    {(image && props.block.type=='image')? <img src={image} alt="image" width={500}/> : ''}
+    return(<div className="mt-3 mb-3">
+    {(image && props.block.type=='image')? <Image src={image} alt="image" width={300} rounded/> : ''}
     {props.block.type=='header'? <h3>{props.block.content}</h3> : ''}
-    {props.block.type=='paragraph'? <p>{props.block.content}</p> : ''}
-    </>);
+    {props.block.type=='paragraph'? <p className="paragraph">{props.block.content}</p> : ''}
+    </div>);
 
 }
 
@@ -207,6 +222,7 @@ function AddPage() {
     const [waiting,setWaiting] = useState(false);
     const [titleErr, setTitleErr] = useState(false);
     const [blocksErr, setBlocksErr] = useState(false);
+    const [dataErr, setDataErr] = useState(false);
     const [blockId, setBlockId] = useState(0);//fake id, since the real one will be placed by the db
     
     const navigate = useNavigate();
@@ -297,8 +313,9 @@ function AddPage() {
     }
 
     const handleAdd = async (title, publicationDate, blocks) => {
+        const dataCheck = !publicationDate || publicationDate>=dayjs().format('YYYY-MM-DD');
         const blockValidation = blockChecks(blocks);
-        if (title === '' || !blockValidation) {
+        if (title === '' || !blockValidation || !dataCheck) {
             if(title==''){
                 setTitleErr(true);
             }
@@ -310,6 +327,12 @@ function AddPage() {
             }
             else{
                 setBlocksErr(false);
+            }
+            if(!dataCheck){
+                setDataErr(true);
+            }
+            else{
+                setDataErr(false);
             }
         }
         else {
@@ -345,11 +368,12 @@ function AddPage() {
             </Dropdown.Menu>
         </Dropdown>
         </Row>
-        {(titleErr || blocksErr)?
+        {(titleErr || blocksErr || dataErr)?
         <Alert variant='danger'>
-            Before submitting you must solve the following error(s):
+            <p>Before submitting you must solve the following error(s):</p>
             {titleErr? <p>Title can't be empty</p>:''}
             {blocksErr? <p>You must include at least one header and at least one between image and paragraph. Be sure that none of the provided blocks is empty</p>:''}
+            {dataErr? <p>If present, the publication date can't be earlier than today</p>:''}
         </Alert>:''
         }
         <Row className="d-flex justify-content-end justify-content-bottom mb-2">
@@ -488,11 +512,12 @@ function EditPage(props) {
     const [waiting,setWaiting] = useState(false);
     const [titleErr, setTitleErr] = useState(false);
     const [blocksErr, setBlocksErr] = useState(false);
-    const [authorErr, setAuthorErr] = useState(false);
+    const [dataErr, setDataErr] = useState(false);
     const [blockId, setBlockId] = useState(0);//fake id, since the real one will be placed by the db
     const [addedBlocks, setAddedBlocks] = useState([]);
     const [updatedBlocks, setUpdatedBlocks] = useState([]);
     const [deletedBlocks, setDeletedBlocks] = useState([]);
+    const [users,setUsers] = useState([]);
     
     const navigate = useNavigate();
 
@@ -502,10 +527,20 @@ function EditPage(props) {
             console.log(page);
             setTitle(page.title);
             setAuthor(page.author);
-            setPublicationDate(page.publicationDate);
+            if(page.publicationDate){
+                setPublicationDate(page.publicationDate);
+            }
             setBlocks(page.blocks);
             const newId = Math.max(...page.blocks.map((b) => b.id)) + 1;
             setBlockId(newId);
+        }
+        async function getAllUsers(){
+            let users = await getUsers();
+            users = users.map((u)=>u.username);
+            setUsers(users);
+        }
+        if(props.user.role=='admin'){
+            getAllUsers();
         }
     },[])
 
@@ -513,8 +548,8 @@ function EditPage(props) {
         setTitle(ev.target.value);
     }
 
-    const updateAuthor = (ev) => {
-        setAuthor(ev.target.value);
+    const updateAuthor = (author) => {
+        setAuthor(author);
     }
 
     const updatePublicationDate = (ev) => {
@@ -657,18 +692,13 @@ function EditPage(props) {
     }
 
     const handleEdit = async (title, author, publicationDate, blocks, addedBlocks, updatedBlocks, deletedBlocks) => {
+        setWaiting(true);
+        const dataCheck = (!publicationDate || location.state.publicationDate==publicationDate || publicationDate>=dayjs().format('YYYY-MM-DD'));
+        console.log(dataCheck);
         const blockValidation = blockChecks(blocks);
 
-        let newAuthor;
-
-        if(props.user.role=='admin'){
-            newAuthor = await userExisting(author);
-        }
-        else{
-            newAuthor=true;
-        }
-
-        if (title === '' || !blockValidation || !newAuthor) {
+        if (title === '' || !blockValidation || !dataCheck) {
+            setWaiting(false);
             if(title==''){
                 setTitleErr(true);
             }
@@ -681,15 +711,15 @@ function EditPage(props) {
             else{
                 setBlocksErr(false);
             }
-            if(!newAuthor){
-                setAuthorErr(true);
+            if(!dataCheck){
+                setDataErr(true);
             }
             else{
-                setAuthorErr(false);
+                setDataErr(false);
             }
         }
         else {
-            setWaiting(true);
+            console.log("correct");
             await editPage(pageid,title,author,publicationDate,blocks,addedBlocks,updatedBlocks,deletedBlocks);            
             navigate('/backoffice');
             setWaiting(false);
@@ -704,10 +734,17 @@ function EditPage(props) {
                 <Form.Control value={title} onChange={(ev) => (updateTitle(ev))} type="text" name="title" placeholder='Enter title' />
             </Form.Group>
             {props.user.role=='admin'?
-                <Form.Group controlId="author">
-                    <Form.Label>Author</Form.Label>
-                    <Form.Control value={author} onChange={(ev) => (updateAuthor(ev))} type="text" name="title" placeholder='Enter author' />
-                </Form.Group>:''
+                <Form.Group controlId="author" className="mt-2 mb-2">
+                <Form.Label>Author</Form.Label>
+                <Dropdown>
+                <Dropdown.Toggle variant="secondary">
+                  {author}
+                </Dropdown.Toggle>
+          
+                <Dropdown.Menu>
+                  {users? users.map((u) => <Dropdown.Item key={u} onClick={() => updateAuthor(u)}>{u}</Dropdown.Item>):''}
+                </Dropdown.Menu>
+                </Dropdown></Form.Group>:''
             }
             <Form.Group controlId='publicationDate'>
                 <Form.Label>Publication date</Form.Label>
@@ -727,12 +764,12 @@ function EditPage(props) {
             </Dropdown.Menu>
         </Dropdown>
         </Row>
-        {(titleErr || blocksErr)?
+        {(titleErr || blocksErr || dataErr)?
         <Alert variant='danger'>
-            Before submitting you must solve the following error(s):
+            <p>Before submitting you must solve the following error(s):</p>
             {titleErr? <p>Title can't be empty</p>:''}
-            {authorErr? <p>The author provided is not a user</p>:''}
             {blocksErr? <p>You must include at least one header and at least one between image and paragraph. Be sure that none of the provided blocks is empty</p>:''}
+            {dataErr? <p>If modified, the publication date can't be earlier than today</p>:''}
         </Alert>:''
         }
         <Row className="d-flex justify-content-end justify-content-bottom mb-2">

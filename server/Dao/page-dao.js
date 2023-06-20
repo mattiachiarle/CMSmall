@@ -6,7 +6,7 @@ const db = require('../db/db.js');
 const createPage = (page) => {
     return new Promise((resolve,reject) => {
         const sql = "INSERT INTO Pages(title,creatorId,creatorUsername,creationDate,publicationDate) VALUES (?,?,?,?,?)";
-        db.run(sql,[page.title,page.creatorId,page.creatorName,page.creationDate.format('YYYY-MM-DD'),page.publicationDate? page.publicationDate.format('YYYY-MM-DD'):null],function(err){
+        db.run(sql,[page.title,page.creatorId,page.creatorName,page.creationDate.format('YYYY-MM-DD'),page.publicationDate? page.publicationDate.format('YYYY-MM-DD'):""],function(err){
             if(err){
                 console.log(err);
                 reject(err);
@@ -60,7 +60,7 @@ const updateAuthor = (pageId, creatorId, creatorName) => {
 
 const getPublicPages = () => {
     return new Promise((resolve,reject) => {
-        const sql = "SELECT * FROM Pages WHERE publicationDate IS NOT NULL AND publicationDate<=?";
+        const sql = 'SELECT * FROM Pages WHERE publicationDate!="" AND publicationDate<=?';
         db.all(sql,[dayjs().format('YYYY-MM-DD')],(err, rows) => {
             if(err)
                 reject(err);
