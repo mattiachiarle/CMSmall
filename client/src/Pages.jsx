@@ -18,7 +18,6 @@ function ShowPublicPages() {
     useEffect(() => {
         async function getPages(){
             const pages = await getPublicPages();
-            console.log(pages);
             pages.sort((p1,p2) => p1.publicationDate.isAfter(p2.publicationDate));
             setPages(pages);
             setLoaded(true);
@@ -159,6 +158,7 @@ function LoggedPageRow(props){
 function ViewPage(){
 
     const { pageid } = useParams();
+    const navigate = useNavigate();
 
     const [page, setPage] = useState(null);
 
@@ -179,9 +179,8 @@ function ViewPage(){
         <h2 className="pageAuthor">{page? "Author: " + page.author:''}</h2>
         </Col>
         </Row>
-        <Container fluid>
         {page? page.blocks.map((b) => <ShowBlock key={b.id} block={b}/>):''}
-        </Container>
+        <Button onClick={() => navigate('/frontoffice')}>BACK</Button>
     </>);
 }
 
@@ -524,7 +523,6 @@ function EditPage(props) {
     useEffect(() => {
         if(location.state){
             const page = location.state;
-            console.log(page);
             setTitle(page.title);
             setAuthor(page.author);
             if(page.publicationDate){
@@ -558,13 +556,9 @@ function EditPage(props) {
 
     const handleAddBlock = (type) => {
         const addedBlock = new Block(blockId,type,'',blocks.length+1);
-        console.log(addedBlock)
         setAddedBlocks((oldBlocks) => [...oldBlocks,blockId])
         setBlocks((oldBlocks) => [...oldBlocks, addedBlock]);
         setBlockId((oldId)=>oldId+1);
-        console.log(addedBlocks);
-        console.log(updatedBlocks);
-        console.log(deletedBlocks);
     }
 
     const moveUp = (pos) => {
@@ -597,9 +591,6 @@ function EditPage(props) {
         if(downFound.length==0 && downAdded.length==0){
             setUpdatedBlocks((oldBlocks) => [...oldBlocks,down[0].id])
         }
-        console.log(addedBlocks);
-        console.log(updatedBlocks);
-        console.log(deletedBlocks);
     }
 
     const moveDown = (pos) => {
@@ -632,9 +623,6 @@ function EditPage(props) {
         if(downFound.length==0 && downAdded.length==0){
             setUpdatedBlocks((oldBlocks) => [...oldBlocks,down[0].id])
         }
-        console.log(addedBlocks);
-        console.log(updatedBlocks);
-        console.log(deletedBlocks);
     }
 
     const removeBlock = (id) => {
@@ -655,9 +643,6 @@ function EditPage(props) {
                 setUpdatedBlocks((oldBlocks) => oldBlocks.filter((i) => i!=id));
             }
         }
-        console.log(addedBlocks);
-        console.log(updatedBlocks);
-        console.log(deletedBlocks);
     }
 
     const updateBlockContent = (id, content) => {
@@ -667,9 +652,6 @@ function EditPage(props) {
         if(updatedBlock.length == 0 && addedBlock.length==0){
             setUpdatedBlocks((oldBlocks) => [...oldBlocks,id])
         }//else=it was already added to updatedBlocks or addedBlocks, so we don't do anything
-        console.log(addedBlocks);
-        console.log(updatedBlocks);
-        console.log(deletedBlocks);
     }
 
     const blockChecks = (blocks) => {
@@ -694,7 +676,6 @@ function EditPage(props) {
     const handleEdit = async (title, author, publicationDate, blocks, addedBlocks, updatedBlocks, deletedBlocks) => {
         setWaiting(true);
         const dataCheck = (!publicationDate || location.state.publicationDate==publicationDate || publicationDate>=dayjs().format('YYYY-MM-DD'));
-        console.log(dataCheck);
         const blockValidation = blockChecks(blocks);
 
         if (title === '' || !blockValidation || !dataCheck) {
@@ -719,7 +700,6 @@ function EditPage(props) {
             }
         }
         else {
-            console.log("correct");
             await editPage(pageid,title,author,publicationDate,blocks,addedBlocks,updatedBlocks,deletedBlocks);            
             navigate('/backoffice');
             setWaiting(false);

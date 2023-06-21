@@ -8,7 +8,6 @@ const createPage = (page) => {
         const sql = "INSERT INTO Pages(title,creatorId,creatorUsername,creationDate,publicationDate) VALUES (?,?,?,?,?)";
         db.run(sql,[page.title,page.creatorId,page.creatorName,page.creationDate.format('YYYY-MM-DD'),page.publicationDate? page.publicationDate.format('YYYY-MM-DD'):""],function(err){
             if(err){
-                console.log(err);
                 reject(err);
             }
             else{

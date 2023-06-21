@@ -20,7 +20,8 @@ function Login(props){
         setPassword(ev.target.value);
     }
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (event) => {
+        event.preventDefault();
 
         let correct = true;
         setWrong('');
@@ -65,7 +66,7 @@ function Login(props){
     return (<>
         <h1 className="d-flex justify-content-center mt-3">{websiteName? websiteName+ ': Login':"Loading..."}</h1>
         <div className="d-flex justify-content-center">
-        <Form className="rounded mt-3 w-50">
+        <Form className="rounded mt-3 w-50" onSubmit={handleSubmit}>
         <Form.Group className="ms-3">
           <Form.Label>Username</Form.Label>
           <Form.Control required={true} value={username} onChange={ev => updateUsername(ev)} placeholder={"Enter email"}/>
@@ -76,7 +77,7 @@ function Login(props){
           <Form.Control type="password" value={password} required={true} onChange={ev => updatePassword(ev)} placeholder={"Enter password"}/>
         </Form.Group>
   
-        <Button className="mb-3 ms-3" variant="primary" onClick={handleSubmit}>Login</Button>
+        <Button className="mb-3 ms-3" variant="primary" type="submit">Login</Button>
         </Form>
         </div>
         <div className="d-flex justify-content-center">

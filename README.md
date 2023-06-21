@@ -86,13 +86,13 @@
       publicationDate:null,
       blocks: [
         {
-          id:6,
+          id:10,
           type: "header",
           content: "test",
           position:1
         },
         {
-          id:6,
+          id:8,
           type: "paragraph",
           content: "A paragraph with some text"
           position:2
@@ -134,7 +134,7 @@
   ```
   request parameters: none
 
-  In the request body, the id will be ignored. It's used in the client to identify the different blocks, but it's useless on client side since it'll be automatically assigned by the db.
+  The id of the blocks in the request body will be ignored. It's used in the client to identify the different blocks, but it's useless on server side since it'll be automatically assigned by the db.
 
   request body:
   {
@@ -166,8 +166,8 @@
   ```
   request parameters: pageid, i.e. the id of the page that we want to modify
 
-  In request body we've 4 arrays of blocks:
-    - blocks: it contains the blocks that were in the page before the edit. It is used to access the original blocks and to display all the blocks during editing.
+  In request body we've 4 arrays:
+    - blocks: it contains all the blocks related to the edited page.
     - addedBlocks: ids of all the blocks that are added.
     - updatedBlocks: ids of all the blocks that were already present but that were modified.
     - deletedBlocks: ids of all the blocks that have been deleted.
@@ -175,30 +175,33 @@
   request body:
   {
     title: "Page1",
-    author: "user1" (it can be not null only if the user that's performing the action is an admin),
+    author: "user1" (it can be different than the one on the DB only if the user that's performing the action is an admin),
     publicationDate: "2023-06-18",
     blocks: [
       {
+        id:1,
         type: "header",
         content: "header1",
         position:2
       },
       {
+        id:5,
         type: "image",
         content:2
         position:1
       },
       {
+        id:3,
         type: "header",
         content: "new header",
         position:3
       }
     ],
     addedBlocks: [
-      10
+      5
     ]
     updatedBlocks: [
-      3,4
+      3
     ],
     deletedBlocks: [
       2,7
@@ -219,6 +222,21 @@
   - response body content
   ```
   none
+  ``` 
+
+- GET `/api/users`
+  - request parameters and request body content
+  ```
+  none
+  ```
+  - response body content
+  ```
+  [
+    {username:"user1"},
+    {username:"user2"},
+    {username:"admin1"},
+    {username:"admin2"},
+  ]
   ``` 
 
 - PUT `/api/website`
@@ -247,16 +265,24 @@
 
 ## React Client Application Routes
 
-- Route `/`: page content and purpose
-- Route `/something/:param`: page content and purpose, param specification
-- ...
-
+- Route `/frontoffice`: list of all the visible pages, with a link for each of them to view it.
+- Route `/backoffice`: list of all the pages, with the possibility to edit and delete them (if we have the permission to do it).
+- Route `/pages/:pageid`: view the page content (in particular title, author and blocks). pageid is the id of the viewed page.
+- Route `/add`: form to create a page.
+- Route `/editPage/:pageid`: form to edit a certain page. pageid is the id of the edited page.
+- Route `/editWebsite`: form to edit the website name.
+- Route `/login`: form to perform the login.
 
 ## Main React Components
 
-- `ListOfSomething` (in `List.js`): component purpose and main functionality
-- `GreatButton` (in `GreatButton.js`): component purpose and main functionality
-- ...
+- `Layout` (in `Layout.jsx`): it shows the navbar, that will contain the correct buttons depending on the login status and on the page viewed.
+- `EditWebsite` (in `Layout.jsx`): form to update the website name.
+- `Login` (in `Login.jsx`): form to perform the login.
+- `ShowPublicPages` (in `Pages.jsx`): it displays the list of public pages, i.e. the ones visible in the frontoffice. Each page title has a link to view the page.
+- `ShowAllPages` (in `Pages.jsx`): it displays the list of all pages, i.e. the ones visible in the backoffice. It also has buttons to edit, delete or add a page.
+- `ViewPage` (in `Pages.jsx`): it displays a page and all its blocks. It has a back button to come back to the frontoffice.
+- `AddPage` (in `Pages.jsx`): form to add a page. It allows to insert page properties, to insert new blocks, to delete them, to reorder them and to change their content.
+- `EditPage` (in `Pages.jsx`): form to edit a page. It allows to modify the page properties or existing blocks. In addition, it allows the user to create or delete blocks and to reorder them.
 
 (only _main_ components, minor ones may be skipped)
 
