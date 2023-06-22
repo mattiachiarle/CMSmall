@@ -30,11 +30,6 @@ function Layout(props){
     }
 
     useEffect(() => {
-        async function getName(){
-            const name = await getWebsiteName();
-            props.setWebsiteName(name);
-        }
-        getName();
         props.setViewMode("frontoffice");
         navigate('/frontoffice');
     },[]);

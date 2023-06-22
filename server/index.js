@@ -52,7 +52,7 @@ passport.use(new LocalStrategy(function verify(username, password, callback){
 }))
 
 passport.serializeUser((user, callback) => {
-    return callback(null, {id: user.id, email: user.email, name: user.username, role: user.role});
+    return callback(null, {id: user.id, email: user.email, username: user.username, role: user.role});
 })
 
 passport.deserializeUser((user, callback) => {
@@ -67,6 +67,16 @@ app.post('/api/login',passport.authenticate('local'),(req,res) => {
     const user = {id: req.user.id, email: req.user.email, username: req.user.username, role: req.user.role};
     res.json(user);
 })
+
+app.get('/api/session', async (req,res) => {
+    if(req.isAuthenticated()){
+        const user = {id: req.user.id, email: req.user.email, username: req.user.username, role: req.user.role};
+        res.json(user);
+    }
+    else{
+        res.json(null);
+    }
+});
 
 app.post('/api/logout',(req,res) => {
     req.logout(() => res.end());

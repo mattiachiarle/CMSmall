@@ -47,6 +47,19 @@ async function logout(){
     }
 }
 
+async function getSession(){
+    try{
+        const response = await fetch(url+'/api/session',{
+            credentials: 'include',
+            method : 'GET',
+        })
+        const user = await response.json();
+        return user;
+    } catch(error){
+        throw new Error(error.message);
+    }
+}
+
 async function getPublicPages(){
     try{
         const response = await fetch(url+'/api/pages/frontoffice',{
@@ -270,4 +283,4 @@ async function getUsers(){
     }
 }
 
-export {login, logout, getPublicPages, getAllPages, getPage, addPage, editPage, deletePage, getWebsiteName, updateWebsiteName, getUsers};
+export {login, logout, getSession, getPublicPages, getAllPages, getPage, addPage, editPage, deletePage, getWebsiteName, updateWebsiteName, getUsers};

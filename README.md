@@ -26,6 +26,21 @@
     role: "user"
   }
   ```
+- GET `/api/session`
+  - request parameters and request body content
+  ```
+  none
+  ```
+  - response body content
+  ```
+  If the user isn't logged in we receive null, otherwise
+  {
+    id: 1,
+    email: "user1@polito.it",
+    username: "user1",
+    role: "user"
+  }
+  ```
 - POST `/api/logout`
   - request parameters and request body content
   ```
