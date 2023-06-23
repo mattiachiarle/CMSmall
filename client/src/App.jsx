@@ -37,7 +37,7 @@ function App() {
             <Route path="pages/:pageid" element={<ViewPage/>} />
             <Route path="add" element={<AddPage/>} />
             <Route path="editPage/:pageid" element={<EditPage user={user}/>} />
-            <Route path="editWebsite" element={<EditWebsite setWebsiteName={setWebsiteName}/>} />
+            <Route path="editWebsite" element={<EditWebsite setWebsiteName={setWebsiteName} viewMode={viewMode}/>} />
           </Route>
           <Route path="/login" element={<Login setLogged={setLogged} setUser={setUser}/>} />
         </Routes>

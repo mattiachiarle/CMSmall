@@ -213,6 +213,25 @@ function ShowBlock(props){
 
 }
 
+const blockChecks = (blocks) => {
+    const headers = blocks.filter((b) => b.type=='header');
+    const images = blocks.filter((b) => b.type=='image');
+    const paragraphs = blocks.filter((b) => b.type=='paragraph');
+
+    if(headers.length==0){
+        return false;
+    }
+    if(images.length==0 && paragraphs.length==0){
+        return false;
+    }
+    const emptyBlock = blocks.filter((b) => !b.content || b.content.trim()=='');
+    if(emptyBlock.length){
+        return false;
+    }
+
+    return true;
+}
+
 function AddPage() {
 
     const [title, setTitle] = useState('');
@@ -292,30 +311,11 @@ function AddPage() {
         setBlocks((oldBlocks) => oldBlocks.map((b) => b.id==id? new Block(b.id,b.type,content,b.position):b))
     }
 
-    const blockChecks = (blocks) => {
-        const headers = blocks.filter((b) => b.type=='header');
-        const images = blocks.filter((b) => b.type=='image');
-        const paragraphs = blocks.filter((b) => b.type=='paragraph');
-
-        if(headers.length==0){
-            return false;
-        }
-        if(images.length==0 && paragraphs.length==0){
-            return false;
-        }
-        const emptyBlock = blocks.filter((b) => !b.content || b.content=='');
-        if(emptyBlock.length){
-            return false;
-        }
-
-        return true;
-    }
-
     const handleAdd = async (title, publicationDate, blocks) => {
         const dataCheck = !publicationDate || publicationDate>=dayjs().format('YYYY-MM-DD');
         const blockValidation = blockChecks(blocks);
-        if (title === '' || !blockValidation || !dataCheck) {
-            if(title==''){
+        if (title.trim() == '' || !blockValidation || !dataCheck) {
+            if(title.trim()==''){
                 setTitleErr(true);
             }
             else{
@@ -654,33 +654,14 @@ function EditPage(props) {
         }//else=it was already added to updatedBlocks or addedBlocks, so we don't do anything
     }
 
-    const blockChecks = (blocks) => {
-        const headers = blocks.filter((b) => b.type=='header');
-        const images = blocks.filter((b) => b.type=='image');
-        const paragraphs = blocks.filter((b) => b.type=='paragraph');
-
-        if(headers.length==0){
-            return false;
-        }
-        if(images.length==0 && paragraphs.length==0){
-            return false;
-        }
-        const emptyBlock = blocks.filter((b) => !b.content || b.content=='');
-        if(emptyBlock.length){
-            return false;
-        }
-
-        return true;
-    }
-
     const handleEdit = async (title, author, publicationDate, blocks, addedBlocks, updatedBlocks, deletedBlocks) => {
         setWaiting(true);
         const dataCheck = (!publicationDate || location.state.publicationDate==publicationDate || publicationDate>=dayjs().format('YYYY-MM-DD'));
         const blockValidation = blockChecks(blocks);
 
-        if (title === '' || !blockValidation || !dataCheck) {
+        if (title.trim() == '' || !blockValidation || !dataCheck) {
             setWaiting(false);
-            if(title==''){
+            if(title.trim()==''){
                 setTitleErr(true);
             }
             else{

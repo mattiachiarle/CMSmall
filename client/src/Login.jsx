@@ -33,7 +33,7 @@ function Login(props){
         else{
             setUsernameError(false);
         }
-        if(password==''){
+        if(password.trim()==''){
             setPasswordError(true);
             correct=false;
         }

@@ -220,7 +220,7 @@ const checkPage = (blocks) => {
         if(b.type=='image'){
             countImage++;
         }
-        if(b.content==''){
+        if(b.content.trim()==''){
             error=true;
         }
         if(prev==-1){
@@ -252,6 +252,9 @@ const checkPage = (blocks) => {
 
 app.post('/api/pages', async (req,res) => {
     try{
+        if(req.body.title.trim()==''){
+            return res.status(400).send("The title can't be empty");
+        }
         const page = new Page(null,req.body.title,req.user.id,req.user.username,dayjs(),req.body.publicationDate?dayjs(req.body.publicationDate):null);
         const check = checkPage(req.body.blocks);
         if(!check.correct){
@@ -292,6 +295,9 @@ app.put('/api/pages/:pageid', async (req,res) => {
         }
         if(!checkAuth(req,existingPage.creatorUsername)){
             return res.status(401).send("You are not authorized to update this page");
+        }
+        if(req.body.title.trim()==''){
+            return res.status(400).send("The title can't be empty");
         }
         if(req.body.publicationDate && req.body.publicationDate!=existingPage.publicationDate && req.body.publicationDate<existingPage.creationDate){
             return res.status(400).send("The publication date can't be updated with a value behind the creation date");
@@ -368,7 +374,7 @@ app.get('/api/users', async (req,res) => {
 
 app.put('/api/website', async (req,res) => {
     try{
-        if(req.body.name == ''){
+        if(req.body.name.trim() == ''){
             res.status(400).send("The website name can't be empty");
         }
         await updateWebsiteName(req.body.name);

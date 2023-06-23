@@ -89,11 +89,16 @@ function EditWebsite(props){
     }
 
     const handleSave = async () => {
-        if(name!=''){
+        if(name.trim()!=''){
             setWaiting(true);
             props.setWebsiteName(name);
             await updateWebsiteName(name);
-            navigate('/frontoffice');
+            if(props.viewMode=='frontoffice'){
+                navigate('/frontoffice');
+            }
+            else{
+                navigate('/backoffice');
+            }
         }
         else{
             setNameError(true);
@@ -122,7 +127,7 @@ function EditWebsite(props){
         </div>
         <div className="d-flex justify-content-center">
         {(nameError)?
-        <Alert variant='danger' className="ms-3 w-50">
+        <Alert variant='danger' className="mt-3 w-50">
             <p>The new name can't be empty</p>
         </Alert>:''
         }
