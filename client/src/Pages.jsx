@@ -2,7 +2,7 @@ import { addPage, deletePage, editPage, getAllPages, getPage, getPublicPages, ge
 import { useNavigate, Link, useParams, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Table, Button, Form, Row, Col, Dropdown, Alert, Image, Container } from "react-bootstrap";
-import { Block } from "../Models/blockModel";
+import { Block, blockChecks } from "../Models/blockModel";
 import image1 from './img/image1.png'
 import image2 from './img/image2.png'
 import image3 from './img/image3.png'
@@ -211,25 +211,6 @@ function ShowBlock(props){
     {props.block.type=='paragraph'? <p className="paragraph">{props.block.content}</p> : ''}
     </div>);
 
-}
-
-const blockChecks = (blocks) => {
-    const headers = blocks.filter((b) => b.type=='header');
-    const images = blocks.filter((b) => b.type=='image');
-    const paragraphs = blocks.filter((b) => b.type=='paragraph');
-
-    if(headers.length==0){
-        return false;
-    }
-    if(images.length==0 && paragraphs.length==0){
-        return false;
-    }
-    const emptyBlock = blocks.filter((b) => !b.content || b.content.trim()=='');
-    if(emptyBlock.length){
-        return false;
-    }
-
-    return true;
 }
 
 function AddPage() {
@@ -740,7 +721,6 @@ function EditPage(props) {
         </Col>
         </Row>
         </>);
-
 }
 
 
