@@ -154,7 +154,7 @@ app.get('/api/pages/:mode', async (req,res) => {
 })
 
 const checkAuth = (req,author) => {
-    if(req.isAuthenticated() && (req.user.role == 'admin' || author == req.user.name)){
+    if(req.isAuthenticated() && (req.user.role == 'admin' || author == req.user.username)){
         return true;
     }
     else{
@@ -252,7 +252,7 @@ const checkPage = (blocks) => {
 
 app.post('/api/pages', async (req,res) => {
     try{
-        const page = new Page(null,req.body.title,req.user.id,req.user.name,dayjs(),req.body.publicationDate?dayjs(req.body.publicationDate):null);
+        const page = new Page(null,req.body.title,req.user.id,req.user.username,dayjs(),req.body.publicationDate?dayjs(req.body.publicationDate):null);
         const check = checkPage(req.body.blocks);
         if(!check.correct){
             return res.status(400).send(check.cause);
