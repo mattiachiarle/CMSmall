@@ -135,4 +135,14 @@ function EditWebsite(props){
       </>);
 }
 
-export {Layout, EditWebsite};
+function ErrorPage(){
+
+    const navigate = useNavigate();
+
+    return (<>
+        <h1 className="d-flex justify-content-center mt-3">404: Page not found</h1>
+        <Button className="ms-3" onClick={() => navigate('/frontoffice')}>BACK TO FRONTOFFICE</Button>
+    </>);
+}
+
+export {Layout, EditWebsite, ErrorPage};

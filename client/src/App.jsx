@@ -1,6 +1,6 @@
 import { useState, useEffect  } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { Layout, EditWebsite } from './Layout';
+import { Layout, EditWebsite, ErrorPage } from './Layout';
 import { ShowPublicPages, ShowAllPages, ViewPage, AddPage, EditPage } from './Pages';
 import { Login } from './Login';
 import { getSession, getWebsiteName } from './API';
@@ -40,6 +40,7 @@ function App() {
             <Route path="editWebsite" element={<EditWebsite setWebsiteName={setWebsiteName} viewMode={viewMode}/>} />
           </Route>
           <Route path="/login" element={<Login setLogged={setLogged} setUser={setUser}/>} />
+          <Route path="*" element={<ErrorPage/>} />
         </Routes>
       </BrowserRouter>
     </>
