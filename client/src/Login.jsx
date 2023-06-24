@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Form, Button, Col, Alert } from "react-bootstrap";
+import { Form, Button, Alert } from "react-bootstrap";
 import { login, getWebsiteName } from "./API";
 
 function Login(props){
@@ -80,6 +80,7 @@ function Login(props){
         <Button className="mb-3 ms-3" variant="primary" type="submit">Login</Button>
         </Form>
         </div>
+        {/* necessary to have alignment with the error message */}
         <div className="d-flex justify-content-center">
         {(usernameError || passwordError)?
         <Alert variant='danger' className="ms-3 w-50">

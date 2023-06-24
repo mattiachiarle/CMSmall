@@ -220,7 +220,10 @@ const checkPage = (blocks) => {
         if(b.type=='image'){
             countImage++;
         }
-        if(b.content.trim()==''){
+        if(b.type!='image' && b.content.trim()==''){
+            error=true;
+        }
+        if(b.type=='image' && b.content<1 || b.content>4){
             error=true;
         }
         if(prev==-1){
@@ -254,6 +257,9 @@ app.post('/api/pages', async (req,res) => {
     try{
         if(req.body.title.trim()==''){
             return res.status(400).send("The title can't be empty");
+        }
+        if(req.body.publicationDate && !dayjs(req.body.publicationDate).isValid()){
+            return res.status(400).send("The publication date is not valid!");
         }
         const page = new Page(null,req.body.title,req.user.id,req.user.username,dayjs(),req.body.publicationDate?dayjs(req.body.publicationDate):null);
         const check = checkPage(req.body.blocks);
@@ -298,6 +304,9 @@ app.put('/api/pages/:pageid', async (req,res) => {
         }
         if(req.body.title.trim()==''){
             return res.status(400).send("The title can't be empty");
+        }
+        if(req.body.publicationDate && !dayjs(req.body.publicationDate).isValid()){
+            return res.status(400).send("The publication date is not valid!");
         }
         if(req.body.publicationDate && req.body.publicationDate!=existingPage.publicationDate && req.body.publicationDate<existingPage.creationDate){
             return res.status(400).send("The publication date can't be updated with a value behind the creation date");

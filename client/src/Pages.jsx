@@ -1,7 +1,7 @@
 import { addPage, deletePage, editPage, getAllPages, getPage, getPublicPages, getUsers } from "./API";
 import { useNavigate, Link, useParams, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Table, Button, Form, Row, Col, Dropdown, Alert, Image, Container } from "react-bootstrap";
+import { Table, Button, Form, Row, Col, Dropdown, Alert, Image } from "react-bootstrap";
 import { Block, blockChecks } from "../Models/blockModel";
 import image1 from './img/image1.png'
 import image2 from './img/image2.png'
@@ -67,6 +67,7 @@ function ShowAllPages(props) {
     }
 
     const handleDelete = async (id) => {
+        setPages((oldPages) => oldPages.filter((p) => p.id!=id));
         await deletePage(id);
         const pages = await getAllPages();
         setPages(pages);
@@ -141,9 +142,9 @@ function LoggedPageRow(props){
         <td>{props.page.status}</td>
         {(props.page.author==props.user.username || props.user.role=='admin')?<>
             <td><Button variant="warning" onClick={() => handleEdit(props.page)}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pencil" viewBox="0 0 16 16">
-                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z" />
-            </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pencil" viewBox="0 0 16 16">
+                    <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z" />
+                </svg>
             </Button></td>
             <td><Button variant="danger" onClick={() => handleDelete(props.page.id)}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16">
@@ -164,8 +165,14 @@ function ViewPage(){
 
     useEffect(() => {
         async function showPage(id){
-            const page = await getPage(id);
-            setPage(page);
+            try{
+                const page = await getPage(id);
+                setPage(page);
+            }
+            catch(err){
+                // fake url, used just to go to the error page
+                navigate('/error');
+            }
         }
         showPage(pageid);
     },[])
@@ -180,7 +187,7 @@ function ViewPage(){
         </Col>
         </Row>
         {page? page.blocks.map((b) => <ShowBlock key={b.id} block={b}/>):''}
-        <Button onClick={() => navigate('/frontoffice')}>BACK</Button>
+        <Button className='mt-2 mb-2' onClick={() => navigate('/frontoffice')}>BACK</Button>
     </>);
 }
 
@@ -217,8 +224,8 @@ function AddPage() {
 
     const [title, setTitle] = useState('');
     const [publicationDate, setPublicationDate] = useState('');
-    const [blocks,setBlocks] = useState([]);
-    const [waiting,setWaiting] = useState(false);
+    const [blocks, setBlocks] = useState([]);
+    const [waiting, setWaiting] = useState(false);
     const [titleErr, setTitleErr] = useState(false);
     const [blocksErr, setBlocksErr] = useState(false);
     const [dataErr, setDataErr] = useState(false);
@@ -242,17 +249,13 @@ function AddPage() {
     const moveUp = (pos) => {
         setBlocks((oldBlocks) => {
             const newBlocks = oldBlocks.map((b) => {
-                if(b.position==pos || b.position==pos-1){
-                    if(b.position==pos){
-                        return new Block(b.id,b.type,b.content,b.position-1);
-                    }
-                    if(b.position==pos-1){
-                        return new Block(b.id,b.type,b.content,b.position+1);
-                    }
+                if(b.position==pos){
+                    return new Block(b.id,b.type,b.content,b.position-1);
                 }
-                else{
-                    return b;
+                if(b.position==pos-1){
+                    return new Block(b.id,b.type,b.content,b.position+1);
                 }
+                return b;
             });
             newBlocks.sort((a,b) => a.position - b.position);
             return newBlocks;
@@ -262,17 +265,13 @@ function AddPage() {
     const moveDown = (pos) => {
         setBlocks((oldBlocks) => {
             const newBlocks = oldBlocks.map((b) => {
-                if(b.position==pos || b.position==pos+1){
-                    if(b.position==pos){
-                        return new Block(b.id,b.type,b.content,b.position+1);
-                    }
-                    if(b.position==pos+1){
-                        return new Block(b.id,b.type,b.content,b.position-1);
-                    }
+                if(b.position==pos){
+                    return new Block(b.id,b.type,b.content,b.position+1);
                 }
-                else{
-                    return b;
+                if(b.position==pos+1){
+                    return new Block(b.id,b.type,b.content,b.position-1);
                 }
+                return b;
             });
             newBlocks.sort((a,b) => a.position - b.position);
             return newBlocks;
@@ -547,17 +546,13 @@ function EditPage(props) {
         const down = blocks.filter((b) => b.position==pos-1);
         setBlocks((oldBlocks) => {
             const newBlocks = oldBlocks.map((b) => {
-                if(b.position==pos || b.position==pos-1){
-                    if(b.position==pos){
-                        return new Block(b.id,b.type,b.content,b.position-1);
-                    }
-                    if(b.position==pos-1){
-                        return new Block(b.id,b.type,b.content,b.position+1);
-                    }
+                if(b.position==pos){
+                    return new Block(b.id,b.type,b.content,b.position-1);
                 }
-                else{
-                    return b;
+                if(b.position==pos-1){
+                    return new Block(b.id,b.type,b.content,b.position+1);
                 }
+                return b;
             });
             newBlocks.sort((a,b) => a.position - b.position);
             return newBlocks;
@@ -579,17 +574,13 @@ function EditPage(props) {
         const down = blocks.filter((b) => b.position==pos);
         setBlocks((oldBlocks) => {
             const newBlocks = oldBlocks.map((b) => {
-                if(b.position==pos || b.position==pos+1){
-                    if(b.position==pos){
-                        return new Block(b.id,b.type,b.content,b.position+1);
-                    }
-                    if(b.position==pos+1){
-                        return new Block(b.id,b.type,b.content,b.position-1);
-                    }
+                if(b.position==pos){
+                    return new Block(b.id,b.type,b.content,b.position+1);
                 }
-                else{
-                    return b;
+                if(b.position==pos+1){
+                    return new Block(b.id,b.type,b.content,b.position-1);
                 }
+                return b;
             });
             newBlocks.sort((a,b) => a.position - b.position);
             return newBlocks;

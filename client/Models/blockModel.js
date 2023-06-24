@@ -18,7 +18,7 @@ const blockChecks = (blocks) => {
     if(images.length==0 && paragraphs.length==0){
         return false;
     }
-    const emptyBlock = blocks.filter((b) => !b.content || b.content.trim()=='');
+    const emptyBlock = blocks.filter((b) => (!b.content || (b.type!='image' && b.content.trim()=='')));
     if(emptyBlock.length){
         return false;
     }
