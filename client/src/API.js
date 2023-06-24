@@ -22,7 +22,13 @@ async function login(username, password){
             return await response.json();
         }
         else{
-            throw new Error("Wrong username or password");
+            if(response.status==401){
+                throw new Error("Wrong username or password");
+            }
+            else{
+                const message = await response.text();
+                throw new Error(message);
+            }
         }
     } catch(error){
         throw new Error(error.message);
@@ -53,8 +59,13 @@ async function getSession(){
             credentials: 'include',
             method : 'GET',
         })
-        const user = await response.json();
-        return user;
+        if(response.ok){
+            const user = await response.json();
+            return user;
+        }
+        else{
+            return null;
+        }
     } catch(error){
         throw new Error(error.message);
     }

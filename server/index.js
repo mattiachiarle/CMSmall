@@ -74,7 +74,7 @@ app.get('/api/session', async (req,res) => {
         res.json(user);
     }
     else{
-        res.json(null);
+        return res.status(401).send("Not authenticated");
     }
 });
 
