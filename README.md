@@ -33,7 +33,6 @@
   ```
   - response body content
   ```
-  If the user isn't logged in we receive null, otherwise
   {
     id: 1,
     email: "user1@polito.it",
@@ -116,7 +115,7 @@
     }
   ]
   ```
-- GET `api/pages/:pageid/view`
+- GET `/api/pages/:pageid/view`
   - request parameters
   ```
   pageid: the id of the displayed page.
@@ -149,7 +148,7 @@
   ```
   request parameters: none
 
-  The id of the blocks in the request body will be ignored. It's used in the client to identify the different blocks, but it's useless on server side since it'll be automatically assigned by the db.
+  The id field of the blocks in the request body will be ignored. It's used in the client to identify the different blocks, but it's useless on server side since it'll be automatically assigned by the DB.
 
   request body:
   {
@@ -181,16 +180,16 @@
   ```
   request parameters: pageid, i.e. the id of the page that we want to modify
 
-  In request body we've 4 arrays:
+  In the request body we've 4 arrays:
     - blocks: it contains all the blocks related to the edited page.
     - addedBlocks: ids of all the blocks that are added.
-    - updatedBlocks: ids of all the blocks that were already present but that were modified.
+    - updatedBlocks: ids of all the blocks that were already present but were modified.
     - deletedBlocks: ids of all the blocks that have been deleted.
 
   request body:
   {
     title: "Page1",
-    author: "user1" (it can be different than the one on the DB only if the user that's performing the action is an admin),
+    author: "user1" (it can be different than the one in the DB only if the user that's performing the action is an admin),
     publicationDate: "2023-06-18",
     blocks: [
       {
@@ -282,7 +281,7 @@
 
 - Route `/frontoffice`: list of all the visible pages, with a link for each of them to view it.
 - Route `/backoffice`: list of all the pages, with the possibility to edit and delete them (if we have the permission to do it).
-- Route `/pages/:pageid`: view the page content (in particular title, author and blocks). pageid is the id of the viewed page.
+- Route `/pages/:pageid`: view the page content (in particular title, author, creationDate, publicationDate and blocks). pageid is the id of the viewed page.
 - Route `/add`: form to create a page.
 - Route `/editPage/:pageid`: form to edit a certain page. pageid is the id of the edited page.
 - Route `/editWebsite`: form to edit the website name.
@@ -297,19 +296,27 @@
 - `ShowAllPages` (in `Pages.jsx`): it displays the list of all pages, i.e. the ones visible in the backoffice. It also has buttons to edit, delete or add a page.
 - `ViewPage` (in `Pages.jsx`): it displays a page and all its blocks. It has a back button to come back to the frontoffice.
 - `AddPage` (in `Pages.jsx`): form to add a page. It allows to insert page properties, to insert new blocks, to delete them, to reorder them and to change their content.
-- `EditPage` (in `Pages.jsx`): form to edit a page. It allows to modify the page properties or existing blocks. In addition, it allows the user to create or delete blocks and to reorder them.
-
-(only _main_ components, minor ones may be skipped)
+- `EditPage` (in `Pages.jsx`): form to edit a page. It allows to modify the page properties and/or existing blocks. In addition, it allows the user to create or delete blocks and to reorder them.
 
 # Usage info
 
 ## Example Screenshot
 
-![Screenshot](./img/screenshot.jpg)
+### Add a new page
+
+![New page](./img/addPage.png)
+
+### Backoffice for an user
+
+![Backoffice](./img/allPages.png)
 
 ## Users Credentials
 
-- user1@polito.it, user1, password (role: user)
-- user2@polito.it, user2, password (role: user)
-- admin1@polito.it, admin1, password (role: admin)
-- admin2@polito.it, admin2, password (role: admin)
+- email: user1@polito.it, username: user1, password: password (role: user)
+- email: user2@polito.it, username: user2, password: password (role: user)
+- email: admin1@polito.it, username: admin1, password: password (role: admin)
+- email: admin2@polito.it, username: admin2, password: password (role: admin)
+
+## Notes
+
+user1 has authored 2 pages, user2 has authored no pages

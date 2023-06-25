@@ -15,7 +15,10 @@ const {createBlock, updateBlock, deleteBlock, deletePageBlocks, getPageBlocks} =
 const {createPage, updatePage, deletePage, updateAuthor, getPublicPages, getAllPages, getPage} = require('./Dao/page-dao.js');
 const {getUser, getUserId, getUsers} = require('./Dao/user-dao.js');
 const {getWebsiteName,updateWebsiteName} = require('./Dao/website-dao.js');
-const {Page} = require('./Models/pageModel.js');
+
+//MODELS
+
+const {Page, getCompletePage, checkPage} = require('./Models/pageModel.js');
 const {Block} = require('./Models/blockModel.js');
 
 //AUTHENTICATION
@@ -23,6 +26,8 @@ const {Block} = require('./Models/blockModel.js');
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const session = require('express-session');
+
+//CONFIGURATIONS
 
 const app = express();
 app.use(morgan('combined'));
@@ -42,7 +47,9 @@ app.use(cors({
 //SESSION INITIALIZATION
 
 app.use(session({
-    secret: "ExamCMSmall", resave: false, saveUninitialized: false
+    secret: "ExamCMSmall", //used to sign the cookie
+    resave: false, //false means that if the session isn't modified we don't save it in the session store
+    saveUninitialized: false //false means that if the session is new but not initialized we don't save it; it allows login
 }));
 
 //AUTHENTICATION INITIALIZATION
@@ -52,11 +59,11 @@ passport.use(new LocalStrategy(function verify(username, password, callback){
 }))
 
 passport.serializeUser((user, callback) => {
-    return callback(null, {id: user.id, email: user.email, username: user.username, role: user.role});
+    return callback(null, {id: user.id, email: user.email, username: user.username, role: user.role}); //used when we save information in the session
 })
 
 passport.deserializeUser((user, callback) => {
-    return callback(null, user);
+    return callback(null, user); //stored from session to req.user
 })
 
 app.use(passport.authenticate('session'));
@@ -91,28 +98,6 @@ app.get('/api/website', async (req,res) => {
         return res.status(500).send(error.message);
     }
 });
-
-const getCompletePage =  (page, blocks) => {
-    try{
-        blocks = blocks.map((b) => ({
-            id:b.id,
-            type:b.type,
-            content:b.content,
-            position:b.position
-        }));
-        return ({
-            id:page.id,
-            title: page.title,
-            author:page.creatorUsername,
-            creationDate:page.creationDate,
-            publicationDate:page.publicationDate,
-            blocks:blocks
-        })
-    }
-    catch(error){
-        throw error;
-    }
-}
 
 app.get('/api/pages/:mode', async (req,res) => {
     if(req.params.mode == 'backoffice'){
@@ -200,66 +185,13 @@ const isLogged = (req,res,next) => {
 
 app.use(isLogged);
 
-const checkPage = (blocks) => {
-    let countHeader=0;
-    let countParagraph=0;
-    let countImage=0;
-    let error = false;
-    let wrongPosition = false;
-    let prev = -1;
-
-    blocks.sort((a,b) => a.position - b.position);
-
-    for(const b of blocks){
-        if(b.type=='header'){
-            countHeader++;
-        }
-        if(b.type=='paragraph'){
-            countParagraph++;
-        }
-        if(b.type=='image'){
-            countImage++;
-        }
-        if(b.type!='image' && b.content.trim()==''){
-            error=true;
-        }
-        if(b.type=='image' && b.content<1 || b.content>4){
-            error=true;
-        }
-        if(prev==-1){
-            prev=b.position;
-        }
-        else{
-            if(prev!=b.position-1){
-                wrongPosition=true;
-            }
-            prev=b.position;
-        }
-    }
-
-    if(error){
-        return {correct:false, cause:"You can't create an empty block"}
-    }
-    if(countHeader==0){
-        return {correct:false, cause:"The page must have at least one header"}
-    }
-    if(countImage==0 && countParagraph==0){
-        return {correct:false, cause:"The page must have at least one image or one paragraph"}
-    }
-    if(wrongPosition){
-        return {correct:false, cause:"The positions of the blocks are not correct"}
-    }
-
-    return {correct: true}
-}
-
 app.post('/api/pages', async (req,res) => {
     try{
         if(req.body.title.trim()==''){
             return res.status(400).send("The title can't be empty");
         }
         if(req.body.publicationDate && !dayjs(req.body.publicationDate).isValid()){
-            return res.status(400).send("The publication date is not valid!");
+            return res.status(400).send("The publication date is not valid");
         }
         const page = new Page(null,req.body.title,req.user.id,req.user.username,dayjs(),req.body.publicationDate?dayjs(req.body.publicationDate):null);
         const check = checkPage(req.body.blocks);
@@ -306,7 +238,7 @@ app.put('/api/pages/:pageid', async (req,res) => {
             return res.status(400).send("The title can't be empty");
         }
         if(req.body.publicationDate && !dayjs(req.body.publicationDate).isValid()){
-            return res.status(400).send("The publication date is not valid!");
+            return res.status(400).send("The publication date is not valid");
         }
         if(req.body.publicationDate && req.body.publicationDate!=existingPage.publicationDate && req.body.publicationDate<existingPage.creationDate){
             return res.status(400).send("The publication date can't be updated with a value behind the creation date");

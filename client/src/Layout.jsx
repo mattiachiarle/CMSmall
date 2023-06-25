@@ -37,27 +37,26 @@ function Layout(props){
     return (
         <>
             <header>
-                <Navbar variant="dark" bg="primary" sticky="top" expand="lg" className='mb-3'>
+                <Navbar variant="dark" bg="primary" sticky="top" className='mb-3'>
                     <Container fluid>
                         <Col className='w-25'>
                         <Navbar.Brand>
                             {props.websiteName? <Button onClick={handleFrontoffice}>{props.websiteName}</Button>:"Loading..."}
                             {props.user && props.user.role == 'admin'?
-                            <Button onClick={handleWebsiteEdit}>EDIT NAME</Button>:
-                            ''
+                            <Button onClick={handleWebsiteEdit}>EDIT NAME</Button>:''
                             }
                         </Navbar.Brand>
                         </Col>
-                        <Col className="d-flex justify-content-center">{
-                            props.logged?
+                        <Col className="d-flex justify-content-center">
+                        {props.logged?
                             <Navbar.Text className='w-50'>Signed in as: {props.user.username}</Navbar.Text>:''
                         }
                         </Col>
-                        <Col xs={2} className="d-flex justify-content-end w-25">
-                        {  (props.logged && props.viewMode=='frontoffice')?                 
+                        <Col className="d-flex justify-content-end w-25">
+                        { (props.logged && props.viewMode=='frontoffice')?                 
                         <Button onClick={handleBackoffice}>Backoffice</Button>:''
                         }
-                        {  (props.logged && props.viewMode=='backoffice')?                 
+                        { (props.logged && props.viewMode=='backoffice')?                 
                         <Button onClick={handleFrontoffice}>Frontoffice</Button>:''
                         }
                         {props.logged?
@@ -82,6 +81,7 @@ function EditWebsite(props){
     const [name, setName] = useState('');
     const [nameError, setNameError] = useState(false);
     const [waiting,setWaiting] = useState(false);
+    const [loaded, setLoaded] = useState(false);
     const navigate = useNavigate();
 
     const updateName = (ev) => {
@@ -89,8 +89,8 @@ function EditWebsite(props){
     }
 
     const handleSave = async () => {
+        setWaiting(true);
         if(name.trim()!=''){
-            setWaiting(true);
             props.setWebsiteName(name);
             await updateWebsiteName(name);
             if(props.viewMode=='frontoffice'){
@@ -102,6 +102,7 @@ function EditWebsite(props){
         }
         else{
             setNameError(true);
+            setWaiting(false);
         }
     };
 
@@ -109,21 +110,22 @@ function EditWebsite(props){
         async function getName(){
             const name = await getWebsiteName();
             setName(name);
+            setLoaded(true);
         }
         getName();
     },[]);
 
     return (<>
         <div className="d-flex justify-content-center">
-        <Form className="rounded mt-3 w-50">
-        <Form.Group className="flex-grow-3">
-          <Form.Label>Website name</Form.Label>
-          <Form.Control required={true} value={name} onChange={ev => updateName(ev)} placeholder={"Enter the new website name"}/>
-        </Form.Group>
-  
-        <Button className="mt-3" disabled={waiting} variant="success" onClick={handleSave}>SAVE</Button>{' '}
-        <Button className="mt-3" variant="danger" onClick={() => {navigate('/backoffice')}}>CANCEL</Button>
-        </Form>
+            <Form className="rounded mt-3 w-50">
+                <Form.Group>
+                <Form.Label>Website name</Form.Label>
+                <Form.Control disabled={!loaded} required={true} value={name} onChange={ev => updateName(ev)} placeholder={"Enter the new website name"}/>
+                </Form.Group>
+        
+                <Button className="mt-3" disabled={waiting} variant="success" onClick={handleSave}>SAVE</Button>{' '}
+                <Button className="mt-3" variant="danger" onClick={() => {navigate('/backoffice')}}>CANCEL</Button>
+            </Form>
         </div>
         <div className="d-flex justify-content-center">
         {(nameError)?
@@ -141,7 +143,7 @@ function ErrorPage(){
 
     return (<>
         <h1 className="d-flex justify-content-center mt-3">404: Page not found</h1>
-        <Button className="ms-3" onClick={() => navigate('/frontoffice')}>BACK TO FRONTOFFICE</Button>
+        <Button className="ms-3 mt-3" onClick={() => navigate('/frontoffice')}>BACK TO FRONTOFFICE</Button>
     </>);
 }
 

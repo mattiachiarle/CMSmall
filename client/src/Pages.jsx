@@ -3,10 +3,6 @@ import { useNavigate, Link, useParams, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Table, Button, Form, Row, Col, Dropdown, Alert, Image } from "react-bootstrap";
 import { Block, blockChecks } from "../Models/blockModel";
-import image1 from './img/image1.png'
-import image2 from './img/image2.png'
-import image3 from './img/image3.png'
-import image4 from './img/image4.png'
 
 import dayjs from 'dayjs';
 
@@ -17,8 +13,8 @@ function ShowPublicPages() {
 
     useEffect(() => {
         async function getPages(){
-            const pages = await getPublicPages();
-            pages.sort((p1,p2) => p1.publicationDate.isAfter(p2.publicationDate));
+            let pages = await getPublicPages();
+            pages.sort((p1,p2) =>  p1.publicationDate.diff(p2.publicationDate));
             setPages(pages);
             setLoaded(true);
         }
@@ -142,15 +138,10 @@ function LoggedPageRow(props){
         <td>{props.page.status}</td>
         {(props.page.author==props.user.username || props.user.role=='admin')?<>
             <td><Button variant="warning" onClick={() => handleEdit(props.page)}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pencil" viewBox="0 0 16 16">
-                    <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z" />
-                </svg>
+                <i className="bi bi-pencil"></i>
             </Button></td>
             <td><Button variant="danger" onClick={() => handleDelete(props.page.id)}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16">
-                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z" />
-                    <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z" />
-                </svg>
+                <i className="bi bi-trash"></i>
             </Button></td>    
         </>:<><td> </td><td> </td></>}
     </tr></>)
@@ -180,12 +171,14 @@ function ViewPage(){
     return (<>
         <Row>
             <Col>
-        <h1 className="pageTitle">{page? page.title:'Loading...'}</h1>
-        </Col>
-        <Col className="d-flex justify-content-end mt-2">
-        <h2 className="pageAuthor">{page? "Author: " + page.author:''}</h2>
-        </Col>
+                <h1 className="pageTitle">{page? page.title:'Loading...'}</h1>
+            </Col>
+            <Col className="d-flex justify-content-end mt-2">
+                <h2 className="pageAuthor">{page? "Author: " + page.author:''}</h2>
+            </Col>
         </Row>
+        <p className="date mt-1">{page? "Creation date: "+page.creationDate.format('DD/MM/YYYY'):''}</p>
+        <p className="date">{page? "Publication date: "+page.publicationDate.format('DD/MM/YYYY'):''}</p>
         {page? page.blocks.map((b) => <ShowBlock key={b.id} block={b}/>):''}
         <Button className='mt-2 mb-2' onClick={() => navigate('/frontoffice')}>BACK</Button>
     </>);
@@ -197,18 +190,7 @@ function ShowBlock(props){
 
     useEffect(() => {
         if(props.block.type=='image'){
-            if(props.block.content==1){
-                setImage(image1);
-            }
-            else if(props.block.content==2){
-                setImage(image2);
-            }
-            else if(props.block.content==3){
-                setImage(image3);
-            }
-            else if(props.block.content==4){
-                setImage(image4);
-            }
+            setImage(`/img/image${props.block.content}.png`);
         }
     },[props.block.type,props.block.content])
 
@@ -247,6 +229,9 @@ function AddPage() {
     }
 
     const moveUp = (pos) => {
+        if(pos==1){
+            return;
+        }
         setBlocks((oldBlocks) => {
             const newBlocks = oldBlocks.map((b) => {
                 if(b.position==pos){
@@ -263,6 +248,9 @@ function AddPage() {
     }
 
     const moveDown = (pos) => {
+        if(pos==blocks.length){
+            return;
+        }
         setBlocks((oldBlocks) => {
             const newBlocks = oldBlocks.map((b) => {
                 if(b.position==pos){
@@ -292,9 +280,11 @@ function AddPage() {
     }
 
     const handleAdd = async (title, publicationDate, blocks) => {
+        setWaiting(true);
         const dataCheck = !publicationDate || publicationDate>=dayjs().format('YYYY-MM-DD');
         const blockValidation = blockChecks(blocks);
         if (title.trim() == '' || !blockValidation || !dataCheck) {
+            setWaiting(false);
             if(title.trim()==''){
                 setTitleErr(true);
             }
@@ -315,7 +305,6 @@ function AddPage() {
             }
         }
         else {
-            setWaiting(true);
             await addPage(title,publicationDate,blocks);            
             navigate('/backoffice');
             setWaiting(false);
@@ -366,7 +355,7 @@ function AddPage() {
 }
 
 function AddedBlock(props){
-    const [content, setContent] = useState(props.block.content);
+    const [content, setContent] = useState(props.block.content); //Useful for edit, while for add it will always be ''
     const [image,setImage] = useState(props.block.content? props.block.content:0);
 
     const updateContent = (ev) => {
@@ -375,8 +364,8 @@ function AddedBlock(props){
     }
 
     const handleImageChange = (id) => {
-        props.updateBlockContent(props.block.id,id);
         setImage(id);
+        props.updateBlockContent(props.block.id,id);
     }
 
     return(<>
@@ -393,85 +382,78 @@ function AddedBlock(props){
             <Form.Label>Image</Form.Label>
             <Row>
                 <Col>
-            <Form.Check
-            inline
-            checked={image==1}
-            label="1"
-            name={`image-${props.block.id}`}
-            type="radio"
-            id={`image-1`}
-            onChange={() => handleImageChange(1)}
-            />
-            <img src={image1} alt="image1" width="200"/>
-            </Col>
-            <Col>
-            <Form.Check
-            inline
-            checked={image==2}
-            label="2"
-            name={`image-${props.block.id}`}
-            type="radio"
-            id={`image-2`}
-            onChange={() => handleImageChange(2)}
-            />
-            <img src={image2} alt="image2" width="200"/>
-            </Col>
+                    <Form.Check
+                        inline
+                        checked={image==1}
+                        label="1"
+                        name={`image-${props.block.id}`}
+                        type="radio"
+                        id={`image-1`}
+                        onChange={() => handleImageChange(1)}
+                    />
+                    <img src={'/img/image1.png'} alt="image1" width="200"/>
+                </Col>
+                <Col>
+                    <Form.Check
+                        inline
+                        checked={image==2}
+                        label="2"
+                        name={`image-${props.block.id}`}
+                        type="radio"
+                        id={`image-2`}
+                        onChange={() => handleImageChange(2)}
+                    />
+                    <img src={'/img/image2.png'} alt="image2" width="200"/>
+                </Col>
             </Row>
-            <Row>
-            <Col>
-            <Form.Check
-            inline
-            checked={image==3}
-            label="3"
-            name={`image-${props.block.id}`}
-            type="radio"
-            id={`image-3`}
-            onChange={() => handleImageChange(3)}
-            />
-            <img src={image3} alt="image3" width="200"/>
-            </Col>
-            <Col>
-            <Form.Check
-            inline
-            checked={image==4}
-            label="4"
-            name={`image-${props.block.id}`}
-            type="radio"
-            id={`image-4`}
-            onChange={() => handleImageChange(4)}
-            />
-            <img src={image4} alt="image4" width="200"/>
-            </Col>
+            <Row className="mt-2">
+                <Col>
+                    <Form.Check
+                    inline
+                    checked={image==3}
+                    label="3"
+                    name={`image-${props.block.id}`}
+                    type="radio"
+                    id={`image-3`}
+                    onChange={() => handleImageChange(3)}
+                    />
+                    <img src={'/img/image3.png'} alt="image3" width="200"/>
+                </Col>
+                <Col>
+                    <Form.Check
+                    inline
+                    checked={image==4}
+                    label="4"
+                    name={`image-${props.block.id}`}
+                    type="radio"
+                    id={`image-4`}
+                    onChange={() => handleImageChange(4)}
+                    />
+                    <img src={'/img/image4.png'} alt="image4" width="200"/>
+                </Col>
             </Row>
         </Form.Group>:''
     }
     {props.block.type=='paragraph'?
         <Form.Group controlId="paragraph">
             <Form.Label>Paragraph</Form.Label>
-            <Form.Control as="textarea" value={content} onChange={(ev) => (updateContent(ev))} type="text" name="header" placeholder='Enter paragraph' />
+            <Form.Control as="textarea" value={content} onChange={(ev) => (updateContent(ev))} type="text" name="paragraph" placeholder='Enter paragraph' />
         </Form.Group>:''
     }
     </Col>
     <Col>
     { props.block.position!=1?
     <Button onClick={() => props.moveUp(props.block.position)} className="mt-3">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-up" viewBox="0 0 16 16">
-        <path fillRule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z"/>
-        </svg>
+        <i className="bi bi-arrow-up"></i>
     </Button>:''
     }
     { props.block.position!=props.maxPosition?
     <Button onClick={() => props.moveDown(props.block.position)} className="mt-3">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-down" viewBox="0 0 16 16">
-        <path fillRule="evenodd" d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z"/>
-        </svg>
+        <i className="bi bi-arrow-down"></i>
     </Button>:''
     }
     <Button variant="danger" onClick={() => props.removeBlock(props.block.id)} className="mt-3">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16">
-                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z" />
-                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z" />
-            </svg>
+        <i className="bi bi-trash"></i>
     </Button>
     </Col>
     </Row>
@@ -492,7 +474,7 @@ function EditPage(props) {
     const [titleErr, setTitleErr] = useState(false);
     const [blocksErr, setBlocksErr] = useState(false);
     const [dataErr, setDataErr] = useState(false);
-    const [blockId, setBlockId] = useState(0);//fake id, since the real one will be placed by the db
+    const [blockId, setBlockId] = useState(0);//again fake id
     const [addedBlocks, setAddedBlocks] = useState([]);
     const [updatedBlocks, setUpdatedBlocks] = useState([]);
     const [deletedBlocks, setDeletedBlocks] = useState([]);
@@ -513,8 +495,7 @@ function EditPage(props) {
             setBlockId(newId);
         }
         async function getAllUsers(){
-            let users = await getUsers();
-            users = users.map((u)=>u.username);
+            const users = await getUsers();
             setUsers(users);
         }
         if(props.user.role=='admin'){
@@ -536,12 +517,15 @@ function EditPage(props) {
 
     const handleAddBlock = (type) => {
         const addedBlock = new Block(blockId,type,'',blocks.length+1);
-        setAddedBlocks((oldBlocks) => [...oldBlocks,blockId])
         setBlocks((oldBlocks) => [...oldBlocks, addedBlock]);
+        setAddedBlocks((oldBlocks) => [...oldBlocks,blockId]);
         setBlockId((oldId)=>oldId+1);
     }
 
     const moveUp = (pos) => {
+        if(pos==1){
+            return;
+        }
         const up = blocks.filter((b) => b.position==pos);
         const down = blocks.filter((b) => b.position==pos-1);
         setBlocks((oldBlocks) => {
@@ -557,19 +541,22 @@ function EditPage(props) {
             newBlocks.sort((a,b) => a.position - b.position);
             return newBlocks;
         });
-        const upFound = updatedBlocks.filter((i) => i == up[0].id);
+        const upEdited = updatedBlocks.filter((i) => i == up[0].id);
         const upAdded = addedBlocks.filter((i) => i == up[0].id);
-        const downFound = updatedBlocks.filter((i) => i == down[0].id);
+        const downEdited = updatedBlocks.filter((i) => i == down[0].id);
         const downAdded = addedBlocks.filter((i) => i == down[0].id);
-        if(upFound.length==0 && upAdded.length==0){//modified but not yet in updated+added
+        if(upEdited.length==0 && upAdded.length==0){//modified but not yet in updated+added
             setUpdatedBlocks((oldBlocks) => [...oldBlocks,up[0].id])
         }
-        if(downFound.length==0 && downAdded.length==0){
+        if(downEdited.length==0 && downAdded.length==0){
             setUpdatedBlocks((oldBlocks) => [...oldBlocks,down[0].id])
         }
     }
 
     const moveDown = (pos) => {
+        if(pos==blocks.length){
+            return;
+        }
         const up = blocks.filter((b) => b.position==pos+1);
         const down = blocks.filter((b) => b.position==pos);
         setBlocks((oldBlocks) => {
@@ -585,14 +572,14 @@ function EditPage(props) {
             newBlocks.sort((a,b) => a.position - b.position);
             return newBlocks;
         });
-        const upFound = updatedBlocks.filter((i) => i == up[0].id);
+        const upEdited = updatedBlocks.filter((i) => i == up[0].id);
         const upAdded = addedBlocks.filter((i) => i == up[0].id);
-        const downFound = updatedBlocks.filter((i) => i == down[0].id);
+        const downEdited = updatedBlocks.filter((i) => i == down[0].id);
         const downAdded = addedBlocks.filter((i) => i == down[0].id);
-        if(upFound.length==0 && upAdded.length==0){//modified but not yet in updated+added
+        if(upEdited.length==0 && upAdded.length==0){//modified but not yet in updated+added
             setUpdatedBlocks((oldBlocks) => [...oldBlocks,up[0].id])
         }
-        if(downFound.length==0 && downAdded.length==0){
+        if(downEdited.length==0 && downAdded.length==0){
             setUpdatedBlocks((oldBlocks) => [...oldBlocks,down[0].id])
         }
     }
@@ -609,7 +596,7 @@ function EditPage(props) {
             setAddedBlocks((oldBlocks) => oldBlocks.filter((i) => i!=id));
         }
         else{
-            setDeletedBlocks((oldBlocks) => [...oldBlocks,id])
+            setDeletedBlocks((oldBlocks) => [...oldBlocks,id]);
             const updatedBlock = updatedBlocks.filter((i) => i==id);
             if(updatedBlock.length!=0){
                 setUpdatedBlocks((oldBlocks) => oldBlocks.filter((i) => i!=id));
@@ -637,7 +624,7 @@ function EditPage(props) {
                 setTitleErr(true);
             }
             else{
-                setTitleErr(false);
+              setTitleErr(false);
             }
             if(!blockValidation){
                 setBlocksErr(true);
@@ -670,13 +657,12 @@ function EditPage(props) {
                 <Form.Group controlId="author" className="mt-2 mb-2">
                 <Form.Label>Author</Form.Label>
                 <Dropdown>
-                <Dropdown.Toggle variant="secondary">
-                  {author}
-                </Dropdown.Toggle>
-          
-                <Dropdown.Menu>
-                  {users? users.map((u) => <Dropdown.Item key={u} onClick={() => updateAuthor(u)}>{u}</Dropdown.Item>):''}
-                </Dropdown.Menu>
+                    <Dropdown.Toggle variant="secondary">
+                    {author}
+                    </Dropdown.Toggle>  
+                    <Dropdown.Menu>
+                    {users? users.map((u) => <Dropdown.Item key={u} onClick={() => updateAuthor(u)}>{u}</Dropdown.Item>):''}
+                    </Dropdown.Menu>
                 </Dropdown></Form.Group>:''
             }
             <Form.Group controlId='publicationDate'>
@@ -706,10 +692,10 @@ function EditPage(props) {
         </Alert>:''
         }
         <Row className="d-flex justify-content-end justify-content-bottom mb-2">
-        <Col xs={4}>
-        <Button disabled={waiting} variant="success" onClick={() => {handleEdit(title,author,publicationDate,blocks,addedBlocks,updatedBlocks,deletedBlocks);}}>SAVE</Button>{' '}
-        <Button variant="danger" onClick={() => {navigate('/backoffice')}}>CANCEL</Button>
-        </Col>
+            <Col xs={4}>
+                <Button disabled={waiting} variant="success" onClick={() => {handleEdit(title,author,publicationDate,blocks,addedBlocks,updatedBlocks,deletedBlocks);}}>SAVE</Button>{' '}
+                <Button variant="danger" onClick={() => {navigate('/backoffice')}}>CANCEL</Button>
+            </Col>
         </Row>
         </>);
 }

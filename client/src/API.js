@@ -282,7 +282,8 @@ async function getUsers(){
             method : 'GET'
         })
         if(response.ok){
-            const users = await response.json();
+            let users = await response.json();
+            users = users.map((u)=>u.username);
             return users;
         }
         else{
